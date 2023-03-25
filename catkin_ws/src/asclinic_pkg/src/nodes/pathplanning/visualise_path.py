@@ -3,9 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
-import rospy
-from std_msgs.msg import String
-from geometry_msgs.msg import Pose
+# import rospy
+# from std_msgs.msg import String
+# from geometry_msgs.msg import Pose
 
 class PathVisualiser():
     """This class manages path visualisation for debugging paths.
@@ -50,23 +50,23 @@ class ImageManager():
     def __init__(self, image_file: str):
         """Set up ImageManager"""
         self.image = plt.imread(image_file)
-        self.x_pixels = image.shape[1]
-        self.y_pixels = image.shape[0]
+        self.x_pixels = self.image.shape[1]
+        self.y_pixels = self.image.shape[0]
 
     def new_image(self, goal: tuple[int, int], pose: tuple[int, int]) -> None:
         """Take in a goal location and current pose (as [x,y] list) and
         render them to an image
         TODO: Add path visualisation"""
         
-        implot = plt.imshow(image)
+        implot = plt.imshow(self.image)
         
         # plot global target
         goal_px = self.xy_to_pixels(goal)
-        plt.scatter([goal_px[0]], [goal_px[1]], 'g.', s=20)
+        plt.scatter([goal_px[0]], [goal_px[1]], color='g', marker='.')
 
         # plot current pose
         pose_px = self.xy_to_pixels(pose)
-        plt.scatter([pose_px[0]], [pose_px[1]], 'b.', s=20)
+        plt.scatter([pose_px[0]], [pose_px[1]], color='b', marker='.')
 
         # at some point, also draw in the path
 
