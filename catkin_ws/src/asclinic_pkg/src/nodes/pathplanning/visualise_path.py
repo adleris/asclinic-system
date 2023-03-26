@@ -2,7 +2,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from copy import deepcopy
 # import rospy
 # from std_msgs.msg import String
 # from geometry_msgs.msg import Pose
@@ -10,8 +9,15 @@ from copy import deepcopy
 class PathVisualiser():
     """This class manages path visualisation for debugging paths.
 
-    It will overlay the position of the robot, the global goal, and the path the robot will take to get there.
-    Depending on the data structure being used, map nodes could also be printed."""
+    It will overlay the position of the robot, the global goal, and the path the
+    robot will take to get there. Depending on the data structure being used,
+    map nodes could also be printed.
+    
+    This class specfically manages the ROS topic and update logic, while 
+    ImageManager handles the actual display"""
+
+    GOAL_TARGET_SUB_TOPIC = "/Pathplanning/Goal"
+    POSE_SUB_TOPIC = "/DriveController/Pose"
 
     ROOM_IMAGE_FILE = "room-map.png"
     
@@ -22,8 +28,8 @@ class PathVisualiser():
         self.image = ImageManager(image_file)
 
         # subscribers to collate info
-        self.global_target_sub = rospy.Subcriber("/Pathplanning/Goal", Pose, self._goal_target_sub)
-        self.pose_sub = rospy.Subcriber("/DriveController/Pose", Pose, self._pose_update_sub)
+        self.global_target_sub = rospy.Subcriber(GOAL_TARGET_SUB_TOPIC, Pose, self._goal_target_sub)
+        self.pose_sub = rospy.Subcriber(POSE_SUB_TOPIC, Pose, self._pose_update_sub)
 
         # publisher for new images
         # self.image_pub = rospy.Publisher("/Pathplanning/image_dummy", <<what data type??>>)
@@ -43,9 +49,15 @@ class PathVisualiser():
 
 
 class ImageManager():
+    """Class to manage display of pathplanning information to images
 
-    ROOM_X_LEN = 20 # metres
-    ROOM_Y_LEN = 10 # metres
+    Attributes:
+        ROOM_X_LEN: Room length in metres in the x direction, defined as west -> east
+        ROOM_Y_LEN: Room length in metres in the y direction, defined as north -> south
+    """
+
+    ROOM_X_LEN = 20
+    ROOM_Y_LEN = 10
 
     def __init__(self, image_file: str):
         """Set up ImageManager"""
@@ -53,22 +65,34 @@ class ImageManager():
         self.x_pixels = self.image.shape[1]
         self.y_pixels = self.image.shape[0]
 
-    def new_image(self, goal: tuple[int, int], pose: tuple[int, int]) -> None:
-        """Take in a goal location and current pose (as [x,y] list) and
-        render them to an image
-        TODO: Add path visualisation"""
+    def new_image(self, goal: tuple[int, int], pose: tuple[int, int], path: list[tuple[int, int]]) -> None:
+        """Take in information about the path and render it to a new image.
+        At the moment, just opens a new matplotlib window.
+
+        Parameters:
+            goal: (x, y) 
+                  xy coordinates of the goal
+            pose: (x, y)
+                  xy coordinates of the current position
+            path: [(x1, y1), (x2, y2), ..., (xn, yn)]
+                  list of xy coordinates of each point of the planned path
+        """
         
         implot = plt.imshow(self.image)
-        
+
+        # plot in the path first, this way the goal and current pose will display on top
+        # first convert each of the (x, y) tuples to pixel coords, then split into x and y arrays
+        path_px = [self.xy_to_pixels(p) for p in path]
+        path_px_transpose = list(map(list, zip(*path_px)))
+        plt.plot(path_px_transpose[0], path_px_transpose[1], color='r', marker='.', linestyle='dashed')
+
         # plot global target
         goal_px = self.xy_to_pixels(goal)
-        plt.scatter([goal_px[0]], [goal_px[1]], color='g', marker='.')
+        plt.scatter([goal_px[0]], [goal_px[1]], color='g', marker='o')
 
         # plot current pose
         pose_px = self.xy_to_pixels(pose)
-        plt.scatter([pose_px[0]], [pose_px[1]], color='b', marker='.')
-
-        # at some point, also draw in the path
+        plt.scatter([pose_px[0]], [pose_px[1]], color='b', marker='o')
 
         plt.show()
         
