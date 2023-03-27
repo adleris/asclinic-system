@@ -1,4 +1,5 @@
 import numpy as np
+import heapq
 
 
 # unique_id_assigner stores a unique umber for every vertex
@@ -10,19 +11,23 @@ class Vertex():
     This class is essentially used to hold the mapping between the (x,y) coordinate
     and the matrix index inside Graph"""
     def __init__(self, x, y):
+        # the following parameters are constant across all Dijkstra runs
         global unique_id_assigner
         self.x  = x
         self.y  = y
         self.id = unique_id_assigner.new_id()
 
+        # cost updates on a per-run basis
+        self._cost = 0
+
     def __lt__(self, other):
-        return self.id < other.id
+        return self._cost < other.__cost
     
     def __eq__(self, other):
-        return self.id == other.id
+        return self._cost == other.__cost
 
     def __gt__(self, other):
-        return self.id > other.id
+        return self._cost > other.__cost
 
     def __str__(self):
         return f"Vertex at ({self.x}, {self.y})"
@@ -54,39 +59,83 @@ class Graph():
     """
 
     MAX_DIST = 1e9
+    NO_PARENT = -1
 
     def __init__(self, verts: list[Vertex], edges: list[Edge]):
-        self.verts   = sorted(verts)
+        # sort the vert array on id number
+        self.verts   = sorted(verts, key = lambda a,b: a.id < b.id)
         self.n_verts = len(self.verts)
         self.edges   = sorted(edges)
         self.n_edges = len(self.edges)
-        self.matrix  = np.zeros((self.n_verts, self.n_verts))
 
-        self.__populate_graph()
-
-    def __populate_graph(self) -> None:
-        """populate graph weights based on the information in self.edges"""
-        for edge in self.edges:
-            self.matrix[self.edges.start][self.edges.end] = self.edges.weight
-
-
-    def dijkstra(self, start: int, end: int) -> list[Vertex]:
+    def dijkstra(self, start: int, end: int) -> list[tuple[float, float]]:
         """Compute Dijkstra's algorithm on Graph from start to end
         
         start and end are the unique ids associated with each Vertex. The algorithm
         uses the ids to refer to the different Vertices in the graph as indices of
         the adjacency matrix, it is up to you to ensure these ids start from 0."""
 
-        seen = [False for i in range(self.n_verts)]
-        distances = np.ones(self.n_verts) * self.MAX_DIST
+        # initialise list of distances to each nodes, and the previous node to each
+        distances = np.ones(n_verts) * self.MAX_DIST
+        prev = np.ones(n_verts) * self.NO_PARENT
+
+        # distance to start is defined to be zero
         distances[start] = 0
 
-        for vert in range(self.verts):
-            min_dist = MAX_DIST
 
-            # find the minimum distance edge that we haven't seen yet
+        # create a priority queue of all of the nodes in the map
+        unseen_verts = [v for v in self.verts]
+        for i in range(len(unseen_verts)):
+            unseen_verts[i] = self.MAX_DIST
+        unseen_verts[start]._cost = 0 # TODO: Maybe this is uneccesary
+        unseen_verts = heapq.heapify(unseen_verts)
 
-        return None
+
+        # iterate over every vertex in the graph
+        while len(unseen_verts) > 0:
+            next_vert = heapq.heappop(unseen_verts)
+
+            # loop through every edge, and select the edges that radiate from this vertex
+            for edge in self.edges:
+                if edge.start == next_vert:
+
+                    # see if this edge is unseen, and gives a shorter path to end
+                    if edge.end in unseen_verts and distances[edge.start] + edge.weight < distances[edge.end]:
+                        distances[edge.end] = distances[edge.start] + edge.weight
+                        prev[edge.end] = edge.start
+                        unseen_verts.update() # TODO what??
+
+                        # update unseen_verts with the new distance
+                        unseen_verts = self._update_heap(unseen_verts, edge.end, distances[edge.end])
+
+        print(distances)
+        print(prev)
+
+        # return self._dijkstra_to_coords(prev)
+    
+    def _update_heap(self, heap: list[Vertex], vert: int, cost: float) -> None:
+        """update the cost of a vertex in the heap with the new cost"""
+        for i in range(len(heap)):
+            if heap[i].id == vert:
+                heap[i]._cost = cost
+                break
+
+        return heapq.heapify(heap)
+
+    # def _dijkstra_to_coords(self, prev: list[int]) -> list[tuple[float, float]]:
+    #     """Convert a list of vertex ids to vertex coordinates
+
+    #     TODO: This should be able to be an linear search since the verts can be sorted, but come back to this later
+
+    #     TODO: I think this is all wrong since we would need start and end here"""
+
+    #     coord_list = []
+    #     # scan through the prev list and convert to coords
+    #     for p in prev:
+    #         for vert in self.verts:
+    #             if vert.id == p:
+    #                 coord_list.append((vert.x, vert.y))
+    #     return coord_list
 
 
 class _UniqueIDAssigner():
