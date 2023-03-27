@@ -1,9 +1,19 @@
 import numpy as np
 import heapq
 
+class UniqueIDAssigner():
+    """Class to manage unique id numbers for different instances"""
+    def __init__(self):
+        # -1 so first id is 0
+        self.next = -1
+    
+    def new_id(self) -> int:
+        """Create a new id"""
+        self.next += 1
+        return self.next
 
 # unique_id_assigner stores a unique umber for every vertex
-unique_id_assigner = _UniqueIDAssigner()
+unique_id_assigner = UniqueIDAssigner()
 
 class Vertex():
     """Stores information about a particular vertex for pathplanning
@@ -21,16 +31,19 @@ class Vertex():
         self._cost = 0
 
     def __lt__(self, other):
-        return self._cost < other.__cost
+        return self._cost < other._cost
     
     def __eq__(self, other):
-        return self._cost == other.__cost
+        return self._cost == other._cost
 
     def __gt__(self, other):
-        return self._cost > other.__cost
+        return self._cost > other._cost
 
     def __str__(self):
         return f"Vertex at ({self.x}, {self.y})"
+    
+    def __repr__(self):
+        return f"Vertex(x:{self.x}, y:{self.y}, id:{self.id}, _cost:{self._cost})"
 
 
 class Edge():
@@ -50,6 +63,9 @@ class Edge():
     def __gt__(self, other):
         return self.weight > other.weight
 
+    def __repr__(self):
+        return f"{self.start}-->{self.end} ({self.weight})"
+
 
 class Graph():
     """A graph to run Dijkstra's algorithm on.
@@ -63,7 +79,7 @@ class Graph():
 
     def __init__(self, verts: list[Vertex], edges: list[Edge]):
         # sort the vert array on id number
-        self.verts   = sorted(verts, key = lambda a,b: a.id < b.id)
+        self.verts   = sorted(verts, key = lambda a: a.id)
         self.n_verts = len(self.verts)
         self.edges   = sorted(edges)
         self.n_edges = len(self.edges)
@@ -76,8 +92,8 @@ class Graph():
         the adjacency matrix, it is up to you to ensure these ids start from 0."""
 
         # initialise list of distances to each nodes, and the previous node to each
-        distances = np.ones(n_verts) * self.MAX_DIST
-        prev = np.ones(n_verts) * self.NO_PARENT
+        distances = np.ones(self.n_verts) * self.MAX_DIST
+        prev = [self.NO_PARENT for i in range(self.n_verts)]
 
         # distance to start is defined to be zero
         distances[start] = 0
@@ -86,9 +102,9 @@ class Graph():
         # create a priority queue of all of the nodes in the map
         unseen_verts = [v for v in self.verts]
         for i in range(len(unseen_verts)):
-            unseen_verts[i] = self.MAX_DIST
+            unseen_verts[i]._cost = self.MAX_DIST
         unseen_verts[start]._cost = 0 # TODO: Maybe this is uneccesary
-        unseen_verts = heapq.heapify(unseen_verts)
+        heapq.heapify(unseen_verts)
 
 
         # iterate over every vertex in the graph
@@ -97,23 +113,37 @@ class Graph():
 
             # loop through every edge, and select the edges that radiate from this vertex
             for edge in self.edges:
-                if edge.start == next_vert:
+                if edge.start == next_vert.id:
 
                     # see if this edge is unseen, and gives a shorter path to end
-                    if edge.end in unseen_verts and distances[edge.start] + edge.weight < distances[edge.end]:
+                    if self._vertex_id_is_in_list(edge.end, unseen_verts) and distances[edge.start] + edge.weight < distances[edge.end]:
                         distances[edge.end] = distances[edge.start] + edge.weight
                         prev[edge.end] = edge.start
-                        unseen_verts.update() # TODO what??
 
                         # update unseen_verts with the new distance
-                        unseen_verts = self._update_heap(unseen_verts, edge.end, distances[edge.end])
+                        self._update_heap(unseen_verts, edge.end, distances[edge.end])
+
+            # print(unseen_verts)
 
         print(distances)
         print(prev)
 
+        print("--------\nSolution Found\n")
+        print("Path:")
+        prev_vert: int = end
+        path = []
+        while prev_vert != self.NO_PARENT:
+            path.append(prev_vert)
+            prev_vert = prev[prev_vert]
+
+        path_str = "->".join((str(p) for p in path[::-1])) + f" cost: {distances[end]}"
+
+        print(path_str)
+
         # return self._dijkstra_to_coords(prev)
     
-    def _update_heap(self, heap: list[Vertex], vert: int, cost: float) -> None:
+    @staticmethod
+    def _update_heap(heap: list[Vertex], vert: int, cost: float) -> None:
         """update the cost of a vertex in the heap with the new cost"""
         for i in range(len(heap)):
             if heap[i].id == vert:
@@ -121,6 +151,15 @@ class Graph():
                 break
 
         return heapq.heapify(heap)
+
+    @staticmethod
+    def _vertex_id_is_in_list(id: int, vertex_list: list[Vertex]) -> bool:
+        """check if there is a vertex with the given id vertex_list"""
+        for v in vertex_list:
+            if v.id == id:
+                return True
+        return False
+        
 
     # def _dijkstra_to_coords(self, prev: list[int]) -> list[tuple[float, float]]:
     #     """Convert a list of vertex ids to vertex coordinates
@@ -137,14 +176,3 @@ class Graph():
     #                 coord_list.append((vert.x, vert.y))
     #     return coord_list
 
-
-class _UniqueIDAssigner():
-    """Class to manage unique id numbers for different instances"""
-    def __init__(self):
-        # -1 so first id is 0
-        self.next = -1
-    
-    def new_id(self) -> int:
-        """Create a new id"""
-        self.next += 1
-        return self.next
