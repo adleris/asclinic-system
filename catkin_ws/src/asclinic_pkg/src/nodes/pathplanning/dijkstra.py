@@ -123,24 +123,43 @@ class Graph():
                         # update unseen_verts with the new distance
                         self._update_heap(unseen_verts, edge.end, distances[edge.end])
 
-            # print(unseen_verts)
 
         print(distances)
         print(prev)
 
         print("--------\nSolution Found\n")
         print("Path:")
+        # loop through the prev list to construct the path from end to start, then flip it to forwards travel
         prev_vert: int = end
-        path = []
+        path: list[int] = []
         while prev_vert != self.NO_PARENT:
             path.append(prev_vert)
             prev_vert = prev[prev_vert]
+        path = path[::-1]
 
-        path_str = "->".join((str(p) for p in path[::-1])) + f" cost: {distances[end]}"
+        # convert from indices to xy coordinates
+        coord_list = self._dijkstra_to_coords(path)
 
+        # nice string output
+        path_str = "->".join((str(p) for p in coord_list)) + f" cost: {distances[end]}"
         print(path_str)
 
-        # return self._dijkstra_to_coords(prev)
+        return coord_list
+
+    def _dijkstra_to_coords(self, path: list[int]) -> list[tuple[float, float]]:
+        """Convert a list of vertex ids to vertex xy coordinates
+
+        TODO: This should be able to be an linear search since the verts can be sorted, but come back to this later
+
+        TODO: I think this is all wrong since we would need start and end here"""
+
+        coord_list: list[tuple[float, float]] = []
+        # scan through the prev list and convert to coords
+        for p in path:
+            for vert in self.verts:
+                if vert.id == p:
+                    coord_list.append((vert.x, vert.y))
+        return coord_list
     
     @staticmethod
     def _update_heap(heap: list[Vertex], vert: int, cost: float) -> None:
@@ -159,20 +178,3 @@ class Graph():
             if v.id == id:
                 return True
         return False
-        
-
-    # def _dijkstra_to_coords(self, prev: list[int]) -> list[tuple[float, float]]:
-    #     """Convert a list of vertex ids to vertex coordinates
-
-    #     TODO: This should be able to be an linear search since the verts can be sorted, but come back to this later
-
-    #     TODO: I think this is all wrong since we would need start and end here"""
-
-    #     coord_list = []
-    #     # scan through the prev list and convert to coords
-    #     for p in prev:
-    #         for vert in self.verts:
-    #             if vert.id == p:
-    #                 coord_list.append((vert.x, vert.y))
-    #     return coord_list
-
