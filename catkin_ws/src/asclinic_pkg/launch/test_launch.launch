@@ -1,0 +1,21 @@
+<launch>
+
+	<!-- START A GROUP WITH A NAMESPACE -->
+	<group ns="asc">
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "talker"
+			type   = "test_Publisher_cpp"
+		/>
+
+        <node
+			pkg    = "asclinic_pkg"
+			name   = "listener"
+			output = "screen"
+			type   = "test_Subscriber.py"
+		/>
+
+	</group>
+
+</launch>

@@ -185,6 +185,7 @@ add_executable(i2c_for_sensors                       src/nodes/i2c_for_sensors.c
                                                      src/drivers/src/vl53l1x/platform/vl53l1_platform.c)
 add_executable(emulate_i2c_for_motors                src/nodes/emulate_i2c_for_motors.cpp)
 add_executable(web_interface_connector               src/nodes/web_interface_connector.cpp)
+add_executable(test_Publisher_cpp                    src/nodes/test_Publisher_cpp.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -209,6 +210,7 @@ add_dependencies(i2c_for_servos                        asclinic_pkg_generate_mes
 add_dependencies(i2c_for_sensors                       asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 add_dependencies(emulate_i2c_for_motors                asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 add_dependencies(web_interface_connector               asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(test_Publisher_cpp               asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 
 ## Specify libraries to link a library or executable target against
@@ -228,6 +230,7 @@ target_link_libraries(i2c_for_servos                        ${catkin_LIBRARIES})
 target_link_libraries(i2c_for_sensors                       ${catkin_LIBRARIES})
 target_link_libraries(emulate_i2c_for_motors                ${catkin_LIBRARIES})
 target_link_libraries(web_interface_connector               ${catkin_LIBRARIES})
+target_link_libraries(test_Publisher_cpp               ${catkin_LIBRARIES})
 
 
 #############

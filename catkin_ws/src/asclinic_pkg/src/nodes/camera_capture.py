@@ -60,9 +60,9 @@ from cv_bridge import CvBridge
 USB_CAMERA_DEVICE_NUMBER = 0
 
 # > Properties of the camera images captured
-DESIRED_CAMERA_FRAME_HEIGHT = 1080
-DESIRED_CAMERA_FRAME_WIDTH = 1920
-DESIRED_CAMERA_FPS = 5
+DESIRED_CAMERA_FRAME_HEIGHT = 480
+DESIRED_CAMERA_FRAME_WIDTH = 640
+DESIRED_CAMERA_FPS = 30
 
 # > For the size of the chessboard grid
 CHESSBOARD_SIZE_HEIGHT = 9
@@ -72,7 +72,7 @@ CHESSBOARD_SIZE_WIDTH  = 6
 #   Note: ensure that this path already exists
 #   Note: images are only saved when a message is received
 #         on the "request_save_image" topic.
-SAVE_IMAGE_PATH = "~/saved_camera_images/"
+SAVE_IMAGE_PATH = "/home/mattheww/ASC/saved_camera_images/"
 
 # > A flag for whether to save any images that contains
 #   a camera calibration chessboard
