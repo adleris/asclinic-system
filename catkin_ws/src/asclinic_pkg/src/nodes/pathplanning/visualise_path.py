@@ -32,10 +32,10 @@ class PathVisualiser():
         self.pose_sub = rospy.Subcriber(POSE_SUB_TOPIC, Pose, self._pose_update_sub)
 
         # publisher for new images
-        # self.image_pub = rospy.Publisher("/Pathplanning/image_dummy", <<what data type??>>)
+        self.image_pub = rospy.Publisher("/Pathplanning/image_dummy", String)
         # >> Soft publish by saving the files?
-        # while not rospy.is_shutdown():
-        #     image_pub.publish(image.new_image(self.global_target, self.pose))
+        while not rospy.is_shutdown():
+            image_pub.publish(image.new_image(self.global_target, self.pose))
 
         rospy.spin()
 
@@ -56,8 +56,9 @@ class ImageManager():
         ROOM_Y_LEN: Room length in metres in the y direction, defined as north -> south
     """
 
+    # measurements come from pdf file
     ROOM_X_LEN = 20
-    ROOM_Y_LEN = 10
+    ROOM_Y_LEN = 10.13
 
     def __init__(self, image_file: str):
         """Set up ImageManager"""
@@ -95,6 +96,8 @@ class ImageManager():
         plt.scatter([pose_px[0]], [pose_px[1]], color='b', marker='o')
 
         plt.show()
+
+        return ""
         
     def xy_to_pixels(self, point: tuple[int, int]) -> tuple[int, int]:
         """convert and (x,y) coordinate in the space to a pixel location on the image

@@ -44,6 +44,9 @@ class Vertex():
     
     def __repr__(self):
         return f"Vertex(x:{self.x}, y:{self.y}, id:{self.id}, _cost:{self._cost})"
+    
+    def to_point(self):
+        return (self.x, self.y)
 
 
 class Edge():
@@ -134,6 +137,8 @@ class Graph():
         path: list[int] = []
         while prev_vert != self.NO_PARENT:
             path.append(prev_vert)
+            if prev_vert == self.NO_PARENT:
+                pass
             prev_vert = prev[prev_vert]
         path = path[::-1]
 
