@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 # from std_msgs.msg import String
 # from geometry_msgs.msg import Pose
 
+from dijkstra import Vertex, Edge
+
 class PathVisualiser():
     """This class manages path visualisation for debugging paths.
 
@@ -95,9 +97,38 @@ class ImageManager():
         pose_px = self.xy_to_pixels(pose)
         plt.scatter([pose_px[0]], [pose_px[1]], color='b', marker='o')
 
+        for i, txt in enumerate(path_px):
+            plt.annotate(str(i), (path_px[i][0], path_px[i][1]))
+
         plt.show()
 
         return ""
+
+    def show_whole_map(self, verts: list[Vertex], edges: list[Edge]):
+        """show full map with verts and edges"""
+
+        implot = plt.imshow(self.image)
+
+        verts_px = [self.xy_to_pixels(v.to_point()) for v in verts]
+        verts_px_transpose = list(map(list, zip(*verts_px)))
+        plt.scatter(verts_px_transpose[0], verts_px_transpose[1], color='k', marker='o')
+
+        edges_px = []
+        for edge in edges:
+            # abuse the ids of verts being in order to look up vertex (x,y) 
+            # values in the list, as edges use their vertex ids
+            start = verts_px[edge.start]
+            end = verts_px[edge.end]
+            plt.plot([start[0], end[0]], [start[1], end[1]], color='r', marker=None)
+
+
+        for i, txt in enumerate(verts_px):
+            plt.annotate(str(i), (verts_px[i][0], verts_px[i][1]))
+
+        plt.show()
+
+        return ""
+
         
     def xy_to_pixels(self, point: tuple[int, int]) -> tuple[int, int]:
         """convert and (x,y) coordinate in the space to a pixel location on the image

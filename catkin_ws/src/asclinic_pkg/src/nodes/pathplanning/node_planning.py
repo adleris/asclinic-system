@@ -8,10 +8,13 @@ This file contains the exports for:
 
 from dijkstra import Edge, Vertex
 
-def load_coords():
+def load_coords(as_objects: bool = True):
     """Load in coordinates of path planning vertices
 
-    The vertices are returned in x, y coordinates, following the coordinate scheme as outlined elsewhere"""
+    The vertices are returned in x, y coordinates, following the coordinate scheme as outlined elsewhere
+    
+    as_objects toggles if the return should be list[list[int, int]] or list[Vertex]
+    """
 
     # for 'room-map.png'
     ROOM_MAP_CM_TO_PIXELS = 0.56
@@ -70,11 +73,24 @@ def load_coords():
         vertex_coords[n] = (nodes[n][0] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 
                             nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100)
 
-    # return vertex_coords
+    
+    if as_objects:
+        return __coord_list_to_Vertex(vertex_coords)
+    return vertex_coords
 
-    return __coord_list_to_Vertex(vertex_coords)
 
-def load_edges():
+def load_edges(as_objects:bool = True):
+    """
+    Load in pre-planned ege associations for th node map that will be returned
+    by load_coords.
+
+    as_objects toggles if the return should be list[list[int, int, float]] or list[Edge]
+    
+    If as_objects is False, the first two numbers are the source and dest vertex
+    id numbers, and the third number is the edge weight
+    """
+
+
     edges: list[list[int, int, float]] = [
         # from 0
         [0, 1, 1],
@@ -178,8 +194,10 @@ def load_edges():
         [39, 40, 1]
         # from 40
     ]
-    # return edges
-    return __edge_list_to_Edges(edges)
+
+    if as_objects:
+        return __edge_list_to_Edges(edges)
+    return edges
 
 
 def __coord_list_to_Vertex(verts: list[tuple[int, int]]):
