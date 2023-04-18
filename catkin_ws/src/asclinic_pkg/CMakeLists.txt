@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   geometry_msgs
   genmsg
   roslib
@@ -88,6 +89,7 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
+  sensor_msgs
 )
 
 ################################################
@@ -186,6 +188,8 @@ add_executable(i2c_for_sensors                       src/nodes/i2c_for_sensors.c
 add_executable(emulate_i2c_for_motors                src/nodes/emulate_i2c_for_motors.cpp)
 add_executable(web_interface_connector               src/nodes/web_interface_connector.cpp)
 
+add_executable(lidarScan			     src/nodes/lidarScan.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -209,7 +213,7 @@ add_dependencies(i2c_for_servos                        asclinic_pkg_generate_mes
 add_dependencies(i2c_for_sensors                       asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 add_dependencies(emulate_i2c_for_motors                asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 add_dependencies(web_interface_connector               asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(lidarScan				asclinic_pkg_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -228,7 +232,7 @@ target_link_libraries(i2c_for_servos                        ${catkin_LIBRARIES})
 target_link_libraries(i2c_for_sensors                       ${catkin_LIBRARIES})
 target_link_libraries(emulate_i2c_for_motors                ${catkin_LIBRARIES})
 target_link_libraries(web_interface_connector               ${catkin_LIBRARIES})
-
+target_link_libraries(lidarScan               ${catkin_LIBRARIES})
 
 #############
 ## Install ##
