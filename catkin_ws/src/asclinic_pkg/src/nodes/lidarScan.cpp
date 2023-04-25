@@ -6,14 +6,22 @@
 
 void laserScanSubscriberCallback(const sensor_msgs::LaserScan& msg);
 
+void parseScan(const sensor_msgs::LaserScan& msg);
+
+void parseScan(const sensor_msgs::LaserScan& msg){
+  // parse a scan and see if there are any obstacles around us
+  for (auto i : msg.ranges){
+   if (i < 0.4){
+     ROS_INFO_STREAM("TOO CLOSE (" << i << ")");
+   }
+  }
+}
+
+
 // Respond to subscriber receiving a message
 void laserScanSubscriberCallback(const sensor_msgs::LaserScan& msg)
 {
-  ROS_INFO_STREAM("Message received with angle_min = " << msg.angle_min << " [rad], angle_max = " << msg.angle_max << " [rad], range_min = " << msg.range_min << " [m], range_max = " << msg.range_max << " [m]");
-
-  // TODO: ADD PARSING
-  // Now process the msg.ranges data to
-  // interpret the robot's surroundings
+  parseScan(msg);
 }
 
 int main(int argc, char **argv){
