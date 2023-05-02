@@ -23,6 +23,8 @@ catkin_ws/src/rplidar_ros/
 
 # Ignore typical unwanted files
 .DS_Store
+venv
+*.pyc
 
 # Ignore swp files
 *.swp
