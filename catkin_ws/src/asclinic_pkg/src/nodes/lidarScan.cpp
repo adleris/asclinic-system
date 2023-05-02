@@ -1,45 +1,49 @@
 #include "ros/ros.h"
 #include <ros/package.h>
 #include "std_msgs/UInt32.h"
+#include "std_msgs/Bool.h"
 #include "sensor_msgs/LaserScan.h"
 #include <array>
 
-void laserScanSubscriberCallback(const sensor_msgs::LaserScan& msg);
-
-void parseScan(const sensor_msgs::LaserScan& msg);
-
-void parseScan(const sensor_msgs::LaserScan& msg){
-  // parse a scan and see if there are any obstacles around us
-  for (auto i : msg.ranges){
-   if (i < 0.4){
-     ROS_INFO_STREAM("TOO CLOSE (" << i << ")");
-   }
+class LidarParserNode {
+public:
+  LidarParserNode() : nh_("~"), nh_for_asc_group_("/asc") {
+    ROS_INFO_STREAM("[PREPARING LIDAR SUBSCRIBER NODE]: " << nh_.getNamespace());
+    obstacle_detection_pub_ = nh_for_asc_group_.advertise<std_msgs::Bool>("sensors/obstacle_scan", queue_size_);
+    rplidar_scan_subscriber_ = nh_for_asc_group_.subscribe("scan", queue_size_, &LidarParserNode::laserScanSubscriberCallback, this);
   }
-}
 
+  void laserScanSubscriberCallback(const sensor_msgs::LaserScan& msg) {
+    parseScan(msg);
+  }
 
-// Respond to subscriber receiving a message
-void laserScanSubscriberCallback(const sensor_msgs::LaserScan& msg)
-{
-  parseScan(msg);
-}
+private:
+  ros::NodeHandle nh_;
+  ros::NodeHandle nh_for_asc_group_;
+  ros::Subscriber rplidar_scan_subscriber_;
+  ros::Publisher obstacle_detection_pub_;
+  uint32_t queue_size_ = 10;
 
-int main(int argc, char **argv){
+  void parseScan(const sensor_msgs::LaserScan& msg) {
+    // parse a scan and see if there are any obstacles around us
+    for (auto i : msg.ranges) {
+      if (i < 0.4) {
+        // ROS_INFO_STREAM("TOO CLOSE (" << i << ")");
+        std_msgs::Bool msg;
+        msg.data = true;
+        obstacle_detection_pub_.publish(msg);
+      }
+    }
+  }
+};
 
-    ros::init(argc, argv, "subscriber_cpp_node");
-    ros::NodeHandle nh("~");
-    ROS_INFO_STREAM("[PREPARING LIDAR SUBSCRIBER NODE]: " << nh.getNamespace());
-    std::string ns_for_group = ros::this_node::getNamespace();
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "subscriber_cpp_node");
 
-    // Initialise a node handle to the group namespace
-    ros::NodeHandle nh_for_asc_group("/asc");
+  LidarParserNode lidar_subscriber_node;
 
-    // Initialise a subscriber to the RPLidar scan
-    uint32_t queue_size = 10;
-    ros::Subscriber rplidar_scan_subscriber = nh_for_asc_group.subscribe("scan", queue_size, laserScanSubscriberCallback);
+  // keep this node running
+  ros::spin();
 
-    // keep this node running
-    ros::spin();
-
-    return 0;
+  return 0;
 }
