@@ -63,7 +63,7 @@ class ObstacleAvoidance:
         self.curr_pos = msg.position
 
         # we are not in avoidance
-        if ! self.detection_lock:
+        if not self.detection_lock:
             return
 
         # release the lock if we've travelled far enough
@@ -85,11 +85,11 @@ class ObstacleAvoidance:
         to move out of a radius around the last obstacle before it will consider
         new obstacles.
         """
-        if ! msg.data:
+        if not msg.data:
             return
         
         # if this obstacle is considered a new detection
-        if ! self.detection_lock:
+        if not self.detection_lock:
             self.detection_publisher.publish(msg)
             self.obstacle_pos = self.curr_pos
             self.detection_lock = True
