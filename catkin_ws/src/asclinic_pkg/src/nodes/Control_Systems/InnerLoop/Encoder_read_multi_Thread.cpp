@@ -5,18 +5,21 @@
 #include "ros/ros.h"
 #include <ros/package.h>
 #include "std_msgs/Int32.h"
+#include "std_msgs/Float32.h"
+
 #include <gpiod.h>
 #include <mutex>
 #include <thread>
 #include "asclinic_pkg/LeftRightInt32.h"
+#include "asclinic_pkg/LeftRightFloat32.h"
 
 // Member Variables for the node
-ros::Publisher m_encoderCounts_Publisher
-ros::Timer m_timer_publishing
+ros::Publisher m_encoderCounts_Publisher;
+ros::Timer m_timer_publishing;
 
 int m_encoder_counts_for_motor_left_a = 0, 
     m_encoder_counts_for_motor_left_b = 0,
-    m_encoder_counts_for_motor_right_a = 0
+    m_encoder_counts_for_motor_right_a = 0,
     m_encoder_counts_for_motor_right_b = 0;
 
 std::mutex m_counting_mutex;
@@ -28,7 +31,8 @@ int m_line_number_for_motor_left_channel_a = 133,
 
 bool encoder_thread_should_count = true;
 
-float m_delta_t_for_publishing_counts = 0.1;
+float m_delta_t_for_publishing_counts = 0.05;
+int m_gpiochip_number = 1;
 
 void timerCallbackForPublishing(const ros::TimerEvent&)
 {
@@ -57,7 +61,7 @@ void timerCallbackForPublishing(const ros::TimerEvent&)
     asclinic_pkg::LeftRightInt32 msg;
     msg.left = counts_motor_left_a_local_copy  + counts_motor_left_b_local_copy;
 	msg.right = counts_motor_right_a_local_copy + counts_motor_right_b_local_copy;
-	m_encoder_counts_publisher.publish(msg);
+	m_encoderCounts_Publisher.publish(msg);
 }
 
 void encoderCountingThreadMain()
@@ -189,7 +193,7 @@ void encoderCountingThreadMain()
 int main(int argc, char* argv[])
 {
 	// Initialise the node
-	ros::init(argc, argv, "encoder_read_multi_threaded");
+	ros::init(argc, argv, "Encoder_read_multi_Thread");
 	ros::NodeHandle nodeHandle("~");
 
 	// Get the GPIO line number to monitor
@@ -251,8 +255,8 @@ int main(int argc, char* argv[])
     std::string ns_for_group = ros::this_node::getNamespace();
 	ros::NodeHandle nh_for_group(ns_for_group);
 
-    m_encoder_counts_publisher = nh_for_group.advertise<asclinic_pkg::LeftRightInt32>("encoder_counts", 10, false);
-    m_timer_for_publishing = nodeHandle.createTimer(ros::Duration(m_delta_t_for_publishing_counts), timerCallbackForPublishing, false);
+    m_encoderCounts_Publisher = nh_for_group.advertise<asclinic_pkg::LeftRightInt32>("encoder_counts", 10, false);
+    m_timer_publishing = nodeHandle.createTimer(ros::Duration(m_delta_t_for_publishing_counts), timerCallbackForPublishing, false);
 
     std::thread encoder_counting_thread (encoderCountingThreadMain);
 
