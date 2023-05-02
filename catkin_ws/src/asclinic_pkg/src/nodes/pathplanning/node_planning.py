@@ -8,7 +8,7 @@ This file contains the exports for:
 
 from dijkstra import Edge, Vertex
 
-def load_coords(as_objects: bool = True):
+def load_coords(as_objects: bool = True) -> list[Vertex]:
     """Load in coordinates of path planning vertices
 
     The vertices are returned in x, y coordinates, following the coordinate scheme as outlined elsewhere
@@ -79,7 +79,7 @@ def load_coords(as_objects: bool = True):
     return vertex_coords
 
 
-def load_edges(as_objects:bool = True):
+def load_edges(as_objects:bool = True) -> list[Edge]:
     """
     Load in pre-planned ege associations for th node map that will be returned
     by load_coords.
@@ -216,8 +216,8 @@ def load_edges(as_objects:bool = True):
     return edges
 
 
-def __coord_list_to_Vertex(verts: list[tuple[int, int]]):
+def __coord_list_to_Vertex(verts: list[tuple[int, int]]) -> list[Vertex]:
     return [Vertex(v[0], v[1]) for v in verts]
 
-def __edge_list_to_Edges(edges: list[list[int, int, float]]):
+def __edge_list_to_Edges(edges: list[list[int, int, float]]) -> list[Edge]:
     return [Edge(e[0], e[1], e[2]) for e in edges]
