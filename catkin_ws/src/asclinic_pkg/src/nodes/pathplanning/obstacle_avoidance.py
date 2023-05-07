@@ -7,10 +7,6 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose, Point
 
 
-NAMESPACE = "asc/path"
-NODE_NAME = NAMESPACE + "/" + "obstacle_avoidance"
-
-
 class ObstacleAvoidance:
     """
     Set up an obstacle avoidance node.
@@ -37,7 +33,7 @@ class ObstacleAvoidance:
 
     OBSTACLE_AVOIDANCE_LOCK_DISTANCE = 0.5 # metres
 
-    def __init__(self):
+    def __init__(self, node_name: str):
         
         self.detection_lock: bool = False
         # The current position
@@ -49,9 +45,10 @@ class ObstacleAvoidance:
         """
         self.obstacle_pos: Point = None
 
-        self.detection_publisher = rospy.Publisher(NODE_NAME+"/detection", Bool, queue_size=10)
-        rospy.Subscriber("asc/control/curr_pose", Pose, self.poseReceivedCallback)
-        rospy.Subscriber("asc/sensors/obstacle_scan", Bool, self.obstacleInRangeCallback)
+        self.detection_publisher = rospy.Publisher(node_name+"/detection", Bool, queue_size=10)
+        rospy.Subscriber("control/curr_pose", Pose, self.poseReceivedCallback)
+        rospy.Subscriber("sensors/obstacle_scan", Bool, self.obstacleInRangeCallback)
+        rospy.loginfo("Obstacle avoidance started.")
 
 
     def poseReceivedCallback(self, msg):
@@ -61,6 +58,7 @@ class ObstacleAvoidance:
         :param msg: {Pose}
         """
         self.curr_pos = msg.position
+        rospy.logdebug("pose update:\n" + str(msg.position))
 
         # we are not in avoidance
         if not self.detection_lock:
@@ -71,6 +69,7 @@ class ObstacleAvoidance:
         if (obstacle_point is not None) and (point_distance(obstacle_point, self.pose.position) > self.OBSTACLE_AVOIDANCE_LOCK_DISTANCE):
             self.obstacle_pos = None
             self.detection_lock = False
+            rospy.loginfo("Releasing detection lock")
 
 
     def obstacleInRangeCallback(self, msg):
@@ -93,7 +92,9 @@ class ObstacleAvoidance:
             self.detection_publisher.publish(msg)
             self.obstacle_pos = self.curr_pos
             self.detection_lock = True
+            rospy.loginfo("publishing detection and creating lock")
         else:
+            rospy.logdebug("ignoring detection due to lock")
             return
 
 
@@ -106,8 +107,8 @@ def point_distance(p1: Point, p2: Point):
 
 if __name__ == '__main__':
 
-    global node_name
-    rospy.init_node(NODE_NAME, anonymous=False)
+    node_name : str = "obstacle_avoidance"
+    rospy.init_node(node_name, anonymous=False)
     obstacle_avoidance = ObstacleAvoidance()
     
     rospy.spin()
