@@ -2,7 +2,7 @@
 
   <group ns="asc">
     <!-- Launch the lidar parsing nodes -->
-    <include file="$(find asclinic_pkg/launch/rplidar.launch)" />
+    <!-- <include file="$(find asclinic_pkg/launch/rplidar.launch)" /> -->
 
     <!-- Launch the obstacle avoidance FSM node -->
     <node
