@@ -103,9 +103,9 @@ class PathPlanner():
         :param msg: New target as Point
         """
         self.global_target = msg
-        target_vertex_id : int = self._vertex_id_lookup(self.global_target)
+        self.global_target_id : int = self._vertex_id_lookup(self.global_target)
         current_vertex_id : int = self.path[self.path_idx]
-        self._recalculate_path(current_vertex_id, target_vertex_id)
+        self._recalculate_path(current_vertex_id, self.global_target_id)
 
         self.publish_next_local_target()
 
@@ -117,8 +117,7 @@ class PathPlanner():
 
         :param msg: Bool (always True)
         """
-        old_target : int = self.path[-1]
-
+        # pull out important values from the path
         old_start : int = self.path[self.path_idx-1]
         old_end   : int = self.path[self.path_idx]
         self._remove_edge(old_start, old_end)
@@ -129,8 +128,8 @@ class PathPlanner():
         new_edge : Edge(new_vert.id, old_start, 1.0)
         self.edges.append(new_edge)
 
-
-        self._recalculate_path(0,0) #TODO
+        # recalculate the full path from this new point
+        self._recalculate_path(new_vert.id, self.global_target_id)
 
     def _vertex_id_from_xy(self, point: tuple[float, float]) -> int:
         """
