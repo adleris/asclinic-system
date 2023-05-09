@@ -12,7 +12,7 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 
 from dijkstra import Graph, Vertex, Edge
 import node_planning 
-from obstacle_avoidance import ObstacleAvoidance
+from obstacle_avoidance import ObstacleAvoidance, point_distance
 from visualise_path import PathVisualiser, ImageManager
 
 # send a global target at the start
@@ -72,9 +72,6 @@ class PathPlanner():
         #TODO possible handling here for no path found
         self.path_idx = 0
 
-    #TODO: figure out what triggers this other than a recalculate.
-    # Is this just based on current pose? 
-    # Or is there another topic that will tell us when we're at the target?
     def publish_next_local_target(self):
         """
         Publish the next target node down the line for traversal
@@ -86,6 +83,8 @@ class PathPlanner():
         next_point = Point(next_path_point[0], next_path_point[1], 0)
         self.local_target_pub.publish(next_point)
 
+        # TODO: add handling for arriving at global target!
+
     def received_curr_pose(self, msg: Pose) -> None:
         """
         Update our knowledge of the current Pose
@@ -93,6 +92,11 @@ class PathPlanner():
         :param msg: Pose
         """
         self.curr_pose = msg
+
+        # check if we had arrived at the next local vertex and should 
+        # publish the next segment of the path
+        if self._check_if_at_target_node():
+            self.publish_next_local_target()
 
     def received_global_target(self, msg: Point) -> None:
         """
@@ -167,6 +171,17 @@ class PathPlanner():
             if self.edges[e].start == start and self.edges[e].end == end:
                 self.edges.pop(e)
 
+    def _check_if_at_target_node(self) -> bool:
+        """
+        Check if we are within a radius of the target position.
+
+        For a first implementation, uses a very simple check on radial distance from target.
+
+        This is used to trigger transitions to a new segment of the path.
+        """
+        target_position : Point = self._point_from_vertex_id(self.path[self.path_idx])
+        return point_distance(self.curr_pose.position, target_position) < 0.2
+
 if __name__ == "__main__":
     rospy.init_node(NODE_NAME, anonymous=False)
     pp = PathPlanner()
@@ -176,3 +191,4 @@ if __name__ == "__main__":
 #####
 # TODO Need to add a path-parsing function which can figure out a mapping back to nodes/edges
 #####
+
