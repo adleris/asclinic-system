@@ -41,6 +41,7 @@ class PathPlanner():
         self.curr_pose : Pose = Pose(Point(0,0,0), Quaternion(0,0,0,1))
         self.global_target : Point = None    
         ##### TODO: should this be a vertex? # I think point is fine, global target can import the coordinate list
+        self.global_target_id : int = -1
 
 
         # set up subscribers
@@ -71,6 +72,9 @@ class PathPlanner():
         #TODO possible handling here for no path found
         self.path_idx = 0
 
+    #TODO: figure out what triggers this other than a recalculate.
+    # Is this just based on current pose? 
+    # Or is there another topic that will tell us when we're at the target?
     def publish_next_local_target(self):
         """
         Publish the next target node down the line for traversal
@@ -113,11 +117,18 @@ class PathPlanner():
 
         :param msg: Bool (always True)
         """
-        # remove the current edge we are traversing from the map
-        self.edges.remove(self.get_current_edge)
-        # add a new vertex at the current pose
-        # add an edge from new vertex back to previous vertex
-        # recreate a new map
+        old_target : int = self.path[-1]
+
+        old_start : int = self.path[self.path_idx-1]
+        old_end   : int = self.path[self.path_idx]
+        self._remove_edge(old_start, old_end)
+
+        # add a new vert at the current pose, and an edge from that vert back to the last vert
+        new_vert : Vertex(self.curr_pose.position.x, self.curr_pose.position.y)
+        self.verts.append(new_vert)
+        new_edge : Edge(new_vert.id, old_start, 1.0)
+        self.edges.append(new_edge)
+
 
         self._recalculate_path(0,0) #TODO
 
@@ -148,6 +159,14 @@ class PathPlanner():
         rospy.logerror("Could not find vertex with ID: " + str(id))
         return Point(0,0,0)
 
+
+    def _remove_edge(self, start: int, end: int):
+        """
+        Remove the edge between start vertex id and end vertex id
+        """
+        for e in range(len(self.edges)):
+            if self.edges[e].start == start and self.edges[e].end == end:
+                self.edges.pop(e)
 
 if __name__ == "__main__":
     rospy.init_node(NODE_NAME, anonymous=False)
