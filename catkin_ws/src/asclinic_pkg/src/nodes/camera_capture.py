@@ -226,7 +226,12 @@ class CameraCapture:
         if (return_flag == True):
             # Publish the camera frame
             rospy.loginfo("[CAMERA CAPTURE] Now publishing camera frame")
-            self.image_publisher.publish(self.cv_bridge.cv2_to_imgmsg(current_frame))
+            self.image_publisher.publish(self.cv_bridge.cv2_to_imgmsg(current_frame, encoding="passthrough"))
+            # temp_image = self.cv_bridge.cv2_to_imgmsg(current_frame, encoding="passthrough")
+            # cv2.imshow('frame', self.cv_bridge.imgmsg_to_cv2(temp_image, desired_encoding='passthrough'))
+            # cv2.imshow('frame', current_frame)
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     return 
 
             if (SHOULD_SAVE_CHESSBOARD_IMAGES):
                 # Check if the camera frame contains a calibration
