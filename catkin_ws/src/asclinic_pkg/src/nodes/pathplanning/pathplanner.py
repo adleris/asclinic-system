@@ -13,13 +13,13 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 from dijkstra import Graph, Vertex, Edge
 import node_planning 
 from obstacle_avoidance import ObstacleAvoidance, point_distance
-from visualise_path import PathVisualiser, ImageManager
+#from visualise_path import PathVisualiser, ImageManager
 
 # send a global target at the start
 
-class PathPlanner():
+NODE_NAME = "planner"
 
-    NODE_NAME = "/path/planner"
+class PathPlanner():
 
     def __init__(self):
         # data stores for generic map data
