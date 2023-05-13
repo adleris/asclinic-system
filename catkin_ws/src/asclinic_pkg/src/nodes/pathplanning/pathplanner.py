@@ -30,7 +30,7 @@ class PathPlanner():
 
 
         # hold information about the path
-        self.path : list[tuple[float, float]]
+        self.path : list[tuple[float, float]] = []
         self.path_idx : int = 0
 
         # holds the current edge we are traversing
@@ -49,7 +49,7 @@ class PathPlanner():
         rospy.Subscriber("/main/global_target", Point, self.received_global_target)
         rospy.Subscriber("/obstacle_avoidance/detection", Bool, self.received_obstacle_detection)
 
-        self.local_target_pub: rospy.Publisher = rospy.Publisher(self.NODE_NAME + "/next_target", Point, queue_size=10)
+        self.local_target_pub: rospy.Publisher = rospy.Publisher(NODE_NAME + "/next_target", Point, queue_size=10)
 
         rospy.loginfo("Initialised Path Planner.")
 
@@ -107,7 +107,10 @@ class PathPlanner():
         :param msg: New target as Point
         """
         self.global_target = msg
-        self.global_target_id : int = self._vertex_id_lookup(self.global_target)
+        try:
+            self.global_target_id : int = self._vertex_id_from_point(self.global_target)
+        except VertexNotFoundException:
+            return
         current_vertex_id : int = self.path[self.path_idx]
         self._recalculate_path(current_vertex_id, self.global_target_id)
 
@@ -135,7 +138,7 @@ class PathPlanner():
         # recalculate the full path from this new point
         self._recalculate_path(new_vert.id, self.global_target_id)
 
-    def _vertex_id_from_xy(self, point: tuple[float, float]) -> int:
+    def _vertex_id_from_point(self, point: Point) -> int:
         """
         Look up a vertex id in the vertex list based on its coordinates and return the ID
 
@@ -146,7 +149,9 @@ class PathPlanner():
             # floating point equality is no good, but these should be generated form the same source
             if vertex.x == point.x and vertex.y == point.y:
                 return vertex.id
-        rospy.logerror("Could not find vertex with coords: " + str(point))
+
+        rospy.logerr("Could not find vertex with coords: " + str(point))
+        raise(VertexNotFoundException(point.x, point.y))
         return 0
 
     def _point_from_vertex_id(self, id: int) -> Point:
@@ -179,8 +184,17 @@ class PathPlanner():
 
         This is used to trigger transitions to a new segment of the path.
         """
+        if len(self.path) == 0:
+            return False
         target_position : Point = self._point_from_vertex_id(self.path[self.path_idx])
         return point_distance(self.curr_pose.position, target_position) < 0.2
+
+
+class VertexNotFoundException(Exception):
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
 
 if __name__ == "__main__":
     rospy.init_node(NODE_NAME, anonymous=False)
