@@ -19,6 +19,9 @@ from obstacle_avoidance import ObstacleAvoidance, point_distance
 
 NODE_NAME = "planner"
 
+HARDCODED_START_POINT = Point(5.49216, 0.541588, 0)
+HARDCODED_START_POSE  = Pose(HARDCODED_START_POINT, Quaternion(0,0,0,1))
+
 class PathPlanner():
 
     def __init__(self):
@@ -38,7 +41,8 @@ class PathPlanner():
 
 
         # data stores for current state
-        self.curr_pose : Pose = Pose(Point(0,0,0), Quaternion(0,0,0,1))
+        # for the first case of the problem, always start at a given location (node id 2 here)
+        self.curr_pose : Pose = HARDCODED_START_POSE
         self.global_target : Point = None    
         ##### TODO: should this be a vertex? # I think point is fine, global target can import the coordinate list
         self.global_target_id : int = -1
@@ -105,13 +109,27 @@ class PathPlanner():
         Triggers a re-calculation of the path.
 
         :param msg: New target as Point
+
+        If a vertex at those coordinates cannot be found, does nothing
         """
         self.global_target = msg
+
         try:
             self.global_target_id : int = self._vertex_id_from_point(self.global_target)
         except VertexNotFoundException:
+            # couldn't find a vertex at those coordinates. Do nothing.
             return
-        current_vertex_id : int = self.path[self.path_idx]
+
+        # if we haven't set a path yet, then we need to set up our first start location
+        # TODO: This could be quite a complex calculation.
+        # 1. The easy process is to always start at a known location
+        # 2. The next process is to mark our current PP vertex as the nearest vertex. We will then generate trajectories based on thinking
+        #    we were at that node. Controller will see some large error signals in this case, but it should work as a first pass.
+        # 4. Drive around until we localise by a marker, then add a an edge to the nearest vertex (and assume we can navigate to it!)
+        if len(self.path) == 0:
+            current_vertex_id : int = self._vertex_id_from_point(HARDCODED_START_POINT)
+        else:
+            current_vertex_id : int = self.path[self.path_idx]
         self._recalculate_path(current_vertex_id, self.global_target_id)
 
         self.publish_next_local_target()
@@ -124,6 +142,10 @@ class PathPlanner():
 
         :param msg: Bool (always True)
         """
+        # if we haven't initalised a path yet, do nothing
+        if len(self.path) == 0:
+            return
+
         # pull out important values from the path
         old_start : int = self.path[self.path_idx-1]
         old_end   : int = self.path[self.path_idx]
@@ -150,7 +172,7 @@ class PathPlanner():
             if vertex.x == point.x and vertex.y == point.y:
                 return vertex.id
 
-        rospy.logerr("Could not find vertex with coords: " + str(point))
+        rospy.logerr("Could not find vertex with coords:\n" + str(point))
         raise(VertexNotFoundException(point.x, point.y))
         return 0
 
