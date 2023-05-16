@@ -1,0 +1,32 @@
+.center {
+    margin:     auto;
+    width:      50%;
+    padding:    10px;
+    text-align: center;
+}
+
+/* .console{
+    width:      50%; 
+    height:     100vh; 
+    float:      left;
+    border:     solid 2px black;
+    
+} */
+
+#console-wrapper {
+  position: absolute;
+  /* top: 10%;
+  left: 1%; */
+  width: 50%;
+  height: 80%;
+  overflow-y: auto;
+  border:     solid 2px black;
+  margin-top: 10px;
+}
+
+#console {
+  height: 100%;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  padding-top: 5px;
+}

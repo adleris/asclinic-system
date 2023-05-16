@@ -64,9 +64,13 @@ class MainNode:
 
     # Respond to timer callback
     def timerCallbackForMainFunction(self, event):
+
+        if (self.f_system_drive == True):
+            rospy.loginfo("[MainNode] Setting main_state to 'Idle'")
+            self.s_main_state = "Idle"
         
         if (self.s_main_state == "Idle" and self.f_system_drive == True):
-            rospy.loginfo("[MainNode] Setting main_state to 'drive'")
+            rospy.loginfo("[MainNode] Setting main_state to 'Drive'")
             self.s_main_state = "Drive"
             self.pub_main_state.publish(self.s_main_state)
             self.f_system_drive = 0

@@ -1,0 +1,44 @@
+<html>
+
+<head>
+	<script type="text/javascript" src="./roslib.min.js"></script>
+    
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="center">
+        <h1 style="margin: 0px">Hello from Team A!</h1>
+    </div>
+    
+    <div>
+        <button id="refresh-topic-btn" style="margin-right: 20px;">Refresh Topics</button>
+        <select id="topic-dropdown">
+        <option value="" selected disabled hidden>Select a topic</option>
+        </select>
+        <button id="clear-console-btn">Clear Console</button>
+    </div>
+
+    <div>
+        <select id="topic-dropdown2">
+            <option value="" selected disabled hidden>Select a topic</option>
+        </select>
+        <label for="inputValue">Enter a value:</label>
+        <input type="text" id="inputValue" name="inputValue">
+        <button id="publish-btn">Publish</button>
+    
+    </div>
+
+    <div id="console-wrapper">
+        <div id="console"></div>
+    </div>
+
+
+
+
+
+    <!-- Needs to run after elements are loaded -->
+    <script type="text/javascript" src="./index.js"></script>
+</body>
+
+</html>
