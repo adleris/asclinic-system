@@ -1,0 +1,24 @@
+<launch>
+    <group ns="asc">
+        <node
+            pkg     = "asclinic_pkg"
+            name    = "Encoder_read_multi_Thread"
+            output  = "screen"
+            type    = "Encoder_read_multi_Thread"
+        />
+
+        <node
+            pkg     = "asclinic_pkg"
+            name    = "Wheel_speed_Controller"
+            output  = "screen"
+            type    = "Wheel_speed_Controller.py"
+        />
+
+        	<node
+			pkg    = "asclinic_pkg"
+			name   = "i2c_for_motors"
+			output = "screen"
+			type   = "i2c_for_motors"
+		/>
+    </group>
+</launch>
