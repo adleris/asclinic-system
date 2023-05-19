@@ -9,7 +9,7 @@
 
         <node
             pkg     = "asclinic_pkg"
-            name    = "Wheel_speed_Controller"
+            name    = "wheel_angular_speed_controller"
             output  = "screen"
             type    = "Wheel_speed_Controller.py"
         />
