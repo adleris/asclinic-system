@@ -8,7 +8,7 @@ NAMESPACE = "asc/control"
 NODE_NAME = f"{NAMESPACE}/wheel_angular_speed_controller"
 
 ENCODER_TICKS_PER_ROTATION = 2240
-SAMPLE_PERIOD = 0.05
+SAMPLE_PERIOD_SEC = 0.05
 LEFT_WHEEL = 0
 RIGHT_WHEEL = 1
 
@@ -104,7 +104,7 @@ class wheelAngularSpeedController:
 
     # converts the encoder counts to rad speed 
     def _endcoderTicksToRadPerSec(self, tick: int):
-        return 2 * pi * (tick / ENCODER_TICKS_PER_ROTATION) / SAMPLE_PERIOD
+        return 2 * pi * (tick / ENCODER_TICKS_PER_ROTATION) / SAMPLE_PERIOD_SEC
 
       
 if __name__ == "__main__":

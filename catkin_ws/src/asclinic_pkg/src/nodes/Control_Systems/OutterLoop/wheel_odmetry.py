@@ -1,35 +1,49 @@
+#!/usr/bin/env python
+
 import rospy
-from asclinic_pkg.msg import PoseFloat32
+from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import cos, sin 
 
 NAMESPACE = "asc/control"
 NODE_NAME = f"{NAMESPACE}/wheel_odometry"
 
-# constants:
-WHEEL_BASE = 3
-WHEEL_RADIUS = 4
+# constants in m:
+WHEEL_BASE_METERS = 0.218
+WHEEL_RADIUS_METERS = 0.144
+SAMPLE_PERIOD_SEC = 0.05
+
+class wheel_odometry:
+    def __init__(self):
+
+        # ROS set up of publishing and subscribing
+        self.change_pos_publisher = rospy.Publisher(f"{NAMESPACE}/change_to_pose", PoseFloat32,  queue_size=1)
+        rospy.Subscriber(f"{NAMESPACE}/wheel_angular_speeds", LeftRightFloat32, self.convert_wheel_speeds_to_pose_differences, queue_size=1)
+        rospy.Subscriber(f"{NAMESPACE}/sysPose", PoseFloat32, self.get_current_pose, queue_size=1)
 
 def convert_wheel_speeds_to_pose_differences(event):
-    global change_pos_publisher
 
     # needed for further calculations
-    delta_s     = WHEEL_RADIUS * (event.left + event.right) / 2
-    delta_phi   = WHEEL_RADIUS * (event.left - event.right) / WHEEL_BASE
+    delta_s     = WHEEL_RADIUS_METERS * SAMPLE_PERIOD_SEC * (event.left + event.right) / 2
+    delta_phi   = WHEEL_RADIUS_METERS * SAMPLE_PERIOD_SEC * (event.left - event.right) / WHEEL_BASE_METERS
 
     # publising the change in pose to be published
     changeToPose = PoseFloat32()
     # add the phi of the previous phi
-    changeToPose.x   = delta_s * cos(0.5 * delta_phi)
-    changeToPose.y   = delta_s * sin(0.5 * delta_phi)
+    changeToPose.x   = delta_s * cos(self.currPhi + 0.5 * delta_phi)
+    changeToPose.y   = delta_s * sin(self.currPhi + 0.5 * delta_phi)
     changeToPose.phi = delta_phi
 
-    change_pos_publisher.publish(changeToPose)
+    self.change_pos_publisher.publish(changeToPose)
+
+
+def get_current_pose(event):
+    # will just grab phi from the current phi
+    self.currPhi = event.phi
 
 if __name__ == "__main__":
-    global NODE_NAME, change_pos_publisher
+    global NODE_NAME
 
     # setup of node
     rospy.init_node(NODE_NAME)
-    change_pos_publisher = rospy.Publisher(f"{NAMESPACE}/change_to_pose", PoseFloat32,  queue_size=1)
-    rospy.Subscriber(f"{NAMESPACE}/wheel_angular_speeds", LeftRightFloat32, convert_wheel_speeds_to_pose_differences, queue_size=1)
+    odometry = wheel_odometry()
     rospy.spin()
