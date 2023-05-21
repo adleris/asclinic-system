@@ -83,13 +83,16 @@ class PathPlanner():
         Publish the next target node down the line for traversal
         """
         self.path_idx += 1
+        if self.path_idx >= len(self.path):
+            rospy.loginfo("Reached the global target!")
+            # TODO: add handling for arriving at global target! -- publish something??
+            return
+
         self.current_edge = None #TODO update
 
         next_path_point = self.path[self.path_idx]
         next_point = Point(next_path_point[0], next_path_point[1], 0)
         self.local_target_pub.publish(next_point)
-
-        # TODO: add handling for arriving at global target!
 
         rospy.loginfo("Next local target: (id:" + str(next_path_point) +"):\n" + str(next_point))
 
