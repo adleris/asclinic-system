@@ -164,9 +164,9 @@ class PathPlanner():
         self._remove_edge(old_start, old_end)
 
         # add a new vert at the current pose, and an edge from that vert back to the last vert
-        new_vert : Vertex(self.curr_pose.position.x, self.curr_pose.position.y)
+        new_vert : Vertex = Vertex(self.curr_pose.position.x, self.curr_pose.position.y)
         self.verts.append(new_vert)
-        new_edge : Edge(new_vert.id, old_start, 1.0)
+        new_edge : Edge = Edge(new_vert.id, old_start, 1.0)
         self.edges.append(new_edge)
 
         # recalculate the full path from this new point
@@ -198,7 +198,7 @@ class PathPlanner():
         for vertex in self.verts:
             if vertex.id == id:
                 return Point(x=vertex.x, y=vertex.y, z=0)
-        rospy.logerror("Could not find vertex with ID: " + str(id))
+        rospy.logerr("Could not find vertex with ID: " + str(id))
         return Point(0,0,0)
 
 
