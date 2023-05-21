@@ -191,6 +191,12 @@ class PathPlanner():
         raise(VertexNotFoundException(point.x, point.y))
         return 0
 
+    @staticmethod
+    def _point_from_vertex_tuple(coord: tuple[float, float]) -> Point:
+        """Convert an (x,y) from a path into a Point object"""
+        return Point(coord[0], coord[1], 0)
+
+    @_mark_unused
     def _point_from_vertex_id(self, id: int) -> Point:
         """
         Look up Point coordinates of a Vertex based on its `id`.
@@ -223,7 +229,7 @@ class PathPlanner():
         """
         if len(self.path) == 0:
             return False
-        target_position : Point = self._point_from_vertex_id(self.path[self.path_idx])
+        target_position : Point = self._point_from_vertex_tuple(self.path[self.path_idx])
         return point_distance(self.curr_pose.position, target_position) < 0.2
 
 
@@ -231,6 +237,14 @@ class VertexNotFoundException(Exception):
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
+
+
+def _mark_unused(func):
+    """Decorator to mark a function as currently unsued, but kept for later utility"""
+    def wrapper(*args, **kwargs):
+        print(f"\033[31mWarning: Function {func.__name__!r} is marked as unused, please update the documentation.\033[0m")
+        return func(*args, **kwargs)
+    return wrapper
 
 
 if __name__ == "__main__":
