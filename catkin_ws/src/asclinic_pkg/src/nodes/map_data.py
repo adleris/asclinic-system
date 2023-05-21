@@ -8,7 +8,7 @@ class MapData:
 
         self.aruco_marker_pose = {
         # Marker ID : [x, y, phi]
-            "7" :   [0,     0.5,      -90],
+            "13" :   [0.5,     9,      0],
         }
 
         self.global_target_positions = {

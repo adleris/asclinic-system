@@ -21,5 +21,19 @@
 			type   = "start_web_server.py"
 		/>
 
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "camera_servo_control"
+			output = "screen"
+			type   = "camera_servo_control.py"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "i2c_for_servos"
+			output = "screen"
+			type   = "i2c_for_servos"
+		/>
+
 	</group>
 </launch>

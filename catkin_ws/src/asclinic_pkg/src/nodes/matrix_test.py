@@ -1,17 +1,16 @@
 import numpy as np 
 import math
+from map_data import MapData
 
-import rospy
+# import rospy
 
-from std_msgs.msg import UInt32
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+# from std_msgs.msg import UInt32
+# from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from math import radians
 
 # Import the standard message types
-from geometry_msgs.msg import Pose, Point, Quaternion
-
-phi = -(math.asin(4/5)+math.pi/2)
-print(math.degrees(phi))
+# from geometry_msgs.msg import Pose, Point, Quaternion
+marker_data = MapData()
 
 # a = np.matrix([
 #     [math.cos(phi), -math.sin(phi), 0],
@@ -27,29 +26,34 @@ print(math.degrees(phi))
 
 # print(np.matmul(np.linalg.inv(a), b))
 
-a = np.matrix([
-    [math.cos(phi), -math.sin(phi), 0],
-    [math.sin(phi), math.cos(phi),  5],
+
+phi_c = np.pi
+
+# Translation matrix from marker frame to camera frame
+T_mc = np.matrix([
+    [np.cos(phi_c), -np.sin(phi_c), 1],
+    [np.sin(phi_c), np.cos(phi_c),  -0.5],
     [0            , 0            ,  1]
 ])
 
-
-b = np.matrix([
+# Origin vector
+origin = np.matrix([
     [0],
     [0],
     [1]
 ])
 
-c = np.matrix([
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1]
-])
+# Translation matrix from world frame to marker frame
+marker_position = marker_data.translation_matrix(str(13))
 
-temp = np.matmul(c, np.linalg.inv(a))
-print(temp)
-print(np.matmul(temp, b))
+# Invert Translation matrix from marker frame to camera frame
+T_mc_inv = np.linalg.inv(T_mc)
 
+# Calculate position vector via matrix multiplication
+position_vector = np.matmul(marker_position, np.matmul(T_mc_inv, origin))
+
+print(position_vector[0,0])
+print(position_vector[1,0])
 # c = np.matrix([
 #     [math.cos(phi), -math.sin(phi)],
 #     [math.sin(phi), math.cos(phi)]
@@ -68,7 +72,7 @@ class ArucoData:
 
         self.aruco_marker_pose = {
         # Marker ID : [x, y, phi]
-            "7" :   [0.5,     1,      90],
+            "7" :   [0,     0,      0],
         }
 
     def translation_matrix(self, index):
@@ -86,4 +90,4 @@ class ArucoData:
 
 test = ArucoData()
 
-print(test.translation_matrix(str(7)))
+# print(test.translation_matrix(str(7)))

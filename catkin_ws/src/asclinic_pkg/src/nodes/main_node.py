@@ -55,13 +55,12 @@ class MainNode:
         # Initialise a timer for capturing the camera frames
         rospy.Timer(rospy.Duration(1/self.main_node_freq), self.timerCallbackForMainFunction)
 
-    # Respond to timer callback
+    # Respond to /asc/system_start callback
     def requestSystemStart(self, event):
         rospy.loginfo("[MainNode] /asc/system_start received: " + str(event.data))
         # rospy.loginfo("[MainNode] Setting main_state to 'drive'")
         self.f_system_drive = event.data
         
-
     # Respond to timer callback
     def timerCallbackForMainFunction(self, event):
 

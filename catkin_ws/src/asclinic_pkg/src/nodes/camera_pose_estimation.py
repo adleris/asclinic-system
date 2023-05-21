@@ -52,6 +52,7 @@ import rospy
 # Import the standard message types
 from std_msgs.msg import UInt32
 from sensor_msgs.msg import Image
+from asclinic_pkg.msg import xyphiPose
 
 # Import numpy
 import numpy as np
@@ -61,6 +62,7 @@ import cv2
 
 # Import aruco
 import cv2.aruco as aruco
+from map_data import MapData
 
 # Package to convert between ROS and OpenCV Images
 from cv_bridge import CvBridge
@@ -76,32 +78,34 @@ DESIRED_CAMERA_FPS = 5
 # Size of Aruco marker
 MARKER_SIZE = 0.250
 
-class ArucoData:
+# class ArucoData:
 
-    def __init__(self):
+#     def __init__(self):
 
-        self.aruco_marker_pose = {
-        # Marker ID : [x, y, phi]
-            "7" :   [0,     0.5,      -90],
-        }
+#         self.aruco_marker_pose = {
+#         # Marker ID : [x, y, phi]
+#             "7" :   [0,     0.5,      -90],
+#         }
 
-    def translation_matrix(self, index):
-        x = self.aruco_marker_pose[index][0]
-        y = self.aruco_marker_pose[index][1]
-        phi = np.radians(self.aruco_marker_pose[index][2])
-        matrix = np.matrix([
-            [np.cos(phi), -np.sin(phi), x],
-            [np.sin(phi), np.cos(phi),  y],
-            [0            , 0            ,  1]
-        ])
+#     def translation_matrix(self, index):
+#         x = self.aruco_marker_pose[index][0]
+#         y = self.aruco_marker_pose[index][1]
+#         phi = np.radians(self.aruco_marker_pose[index][2])
+#         matrix = np.matrix([
+#             [np.cos(phi), -np.sin(phi), x],
+#             [np.sin(phi), np.cos(phi),  y],
+#             [0            , 0            ,  1]
+#         ])
 
-        return matrix
+#         return matrix
 
 class ArucoDetector:
 
     def __init__(self):
 
-        self.marker_data = ArucoData() 
+        self.marker_data = MapData()
+
+        self.pose_c_pub = rospy.Publisher("/asc"+"/camera_pose", xyphiPose, queue_size=10)
 
         # > Put the desired video capture properties into local variables
         self.camera_frame_width  = DESIRED_CAMERA_FRAME_WIDTH
@@ -248,6 +252,8 @@ class ArucoDetector:
 
                 current_frame_with_marker_outlines = aruco.drawDetectedMarkers(current_frame.copy(), aruco_corners_of_all_markers, aruco_ids, borderColor=(0, 220, 0))
 
+                pose_info = None
+
                 # Iterate over the markers detected
                 for i_marker_id in range(len(aruco_ids)):
                     # Get the ID for this marker
@@ -258,46 +264,62 @@ class ArucoDetector:
                     solvepnp_method = cv2.SOLVEPNP_IPPE_SQUARE
                     success_flag, rvec, tvec = cv2.solvePnP(self.single_marker_object_points, corners_of_this_marker, self.intrinic_camera_matrix, self.intrinic_camera_distortion, flags=solvepnp_method)
                     
+                    # Test to see if this is a marker we know about
                     if (str(this_id) in self.marker_data.aruco_marker_pose):
-                        # Calculate phi in camera frame relative to marker frame
-                        phi_c = (-np.linalg.norm(rvec)*np.sign(rvec)[1])[0]
-
-                        # Translation matrix from marker frame to camera frame
-                        T_mc = np.matrix([
-                            [np.cos(phi_c), -np.sin(phi_c), tvec[0][0]],
-                            [np.sin(phi_c), np.cos(phi_c),  tvec[2][0]],
-                            [0            , 0            ,  1]
-                        ])
-
-                        # Origin vector
-                        origin = np.matrix([
-                            [0],
-                            [0],
-                            [1]
-                        ])
-
-                        # Translation matrix from world frame to marker frame
-                        marker_position = self.marker_data.translation_matrix(str(this_id))
-
-                        # Invert Translation matrix from marker frame to camera frame
-                        T_mc_inv = np.linalg.inv(T_mc)
-
-                        # Calculate position vector vai matrix multiplication
-                        position_vector = np.matmul(marker_position, np.matmul(T_mc_inv, origin))
-
-                        x_c = position_vector[0,0]
-                        y_c = position_vector[1,0]
-
-                        # Phi calculations
-                        phi_m = np.radians(self.marker_data.aruco_marker_pose[str(this_id)][2])
-                        print(np.degrees(phi_c))
-                        print(np.degrees(phi_m))
                         
-                        phi = phi_m - phi_c # negative to make the math work out
-                        print(np.degrees(phi))
-                        if (abs(phi) > np.pi):
-                            phi = 2*np.pi - np.sign(phi)*phi
-                        print("x_c: " + str(x_c) + " y_c: " + str(y_c) + " phi: " + str(np.degrees(phi)))
+                        if ((pose_info == None) or (tvec[2][0]**2 + tvec[0][0]**2 > pose_info["e_dist"])):
+                            pose_info = {
+                                "id":       str(this_id),
+                                "phi_c":    (-np.linalg.norm(rvec)*np.sign(rvec)[1])[0],
+                                "tvec_z":   tvec[2][0],
+                                "tvec_x":   -tvec[0][0],
+                                "e_dist":   tvec[2][0]**2 + tvec[0][0]**2
+                            }
+                    
+
+                # Translation matrix from marker frame to camera frame
+                phi_c = pose_info["phi_c"]
+                T_mc = np.matrix([
+                    [np.cos(phi_c), -np.sin(phi_c), pose_info["tvec_z"]],
+                    [np.sin(phi_c), np.cos(phi_c),  pose_info["tvec_x"]],
+                    [0            , 0            ,  1]
+                ])
+
+                # Origin vector
+                origin = np.matrix([
+                    [0],
+                    [0],
+                    [1]
+                ])
+
+                # Translation matrix from world frame to marker frame
+                marker_position = self.marker_data.translation_matrix(str(pose_info["id"]))
+
+                # Invert Translation matrix from marker frame to camera frame
+                T_mc_inv = np.linalg.inv(T_mc)
+
+                # Calculate position vector via matrix multiplication
+                position_vector = np.matmul(marker_position, np.matmul(T_mc_inv, origin))
+
+                x_c = position_vector[0,0]
+                y_c = position_vector[1,0]
+
+                # Phi calculations
+                phi_m = np.radians(self.marker_data.aruco_marker_pose[str(pose_info["id"])][2])
+                # print(np.degrees(phi_c))
+                # print(np.degrees(phi_m))
+                
+                phi = phi_m - phi_c # negative to make the math work out
+                print(phi)
+                # print(np.degrees(phi))
+                if (abs(phi) > np.pi):
+                    phi = 2*np.pi - np.sign(phi)*phi
+                # print("x_c: " + str(x_c) + " y_c: " + str(y_c) + " phi: " + str(np.degrees(phi)))
+                data_string = ServoPulseWidth()
+                data_string.x = x_c
+                data_string.y = y_c
+                data_string.phi = np.degrees(phi)
+                self.pose_c_pub.publish(data_string)
 
         else:
             # Display an error message

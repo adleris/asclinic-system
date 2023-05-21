@@ -1,6 +1,6 @@
 // Connect to Ros Bridge
 var ros = new ROSLIB.Ros({
-    url : 'ws://localhost:9090'
+    url : 'ws://10.41.146.230:9090'
 });
 
 ros.on('connection', function() {
@@ -19,6 +19,14 @@ ros.on('close', function() {
 
 // List all Topics
 const refreshBtn = document.getElementById("refresh-topic-btn");
+var checkboxes = document.querySelectorAll("#checkbox-list input[type='checkbox']");
+// checkboxes.forEach(checkbox => {
+//   checkbox.addEventListener("change", function() {
+//     console.log("Hello")
+//   });
+// });
+
+var filteredTopicList = [];
 
 async function getTopics() {
     let topicsClient = new ROSLIB.Service({
@@ -42,7 +50,46 @@ async function getTopics() {
     addTopicToDropdown(topicList, "topic-dropdown2")
 
     addAscToConsole(topicList)
+
+    // Add topics to checkbox list
+    createInputs(topicList)
+    checkboxes = [];
+
+    // Refresh event listeners
+    checkboxes = document.querySelectorAll("#checkbox-list input[type='checkbox']");
+    checkboxes.forEach(checkbox => {
+    checkbox.addEventListener("change", function() {
+        testFunction()
+        });
+    });
 };
+
+async function testFunction() {
+    let topicsClient = new ROSLIB.Service({
+        ros : ros,
+        name : '/rosapi/topics',
+        serviceType : 'rosapi/Topics'
+        });
+    
+    let request = new ROSLIB.ServiceRequest();
+
+    let topicList = await new Promise((resolve, reject) => {
+        topicsClient.callService(request, function(result) {
+            console.log("Getting topics...");
+            resolve(result);
+        })
+    })
+
+
+    filteredTopicList = []
+    checkboxes = document.querySelectorAll("#checkbox-list input[type='checkbox']");
+    checkboxes.forEach(checkbox => {
+            if (checkbox.checked == true) {
+                let topicListIndex = topicList["topics"].indexOf(checkbox.value)
+                filteredTopicList.push(topicList["topics"][topicListIndex])
+            }
+        });
+}
 
 function addTopicToDropdown(topicList, dropdownID) {
     const dropdown = document.getElementById(dropdownID);
@@ -93,13 +140,14 @@ var listenerArray = []
 function addAscToConsole(topicList){
 
     let n = 0;
+    listenerArray = []
 
     for (i=0; i < topicList["topics"].length; i++) {
 
-        if (!topicList["topics"][i].startsWith('/asc')) {
-            continue;
-        }
-        console.log(topicList["topics"][i])
+        // if (!topicList["topics"][i].startsWith('/asc')) {
+        //     continue;
+        // }
+        console.log("Adding: " + topicList["topics"][i])
 
         listenerArray[n] = new ROSLIB.Topic({
             ros : ros,
@@ -110,12 +158,19 @@ function addAscToConsole(topicList){
         //console.log('Received message on ' + listener.name + ': ' + message.data);
             const now = new Date();
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            addLineToConsole(`${timeString} | [${this.name}] ${message.data}`)
+            if (toggleValue && filteredTopicList.includes(this.name)) {
+                addLineToConsole(`${timeString} | [${this.name}] ${JSON.stringify(message)}`)
+            }
+
         });
 
         n++;
     }
 
+}
+
+function clearListeners() {
+    listenerArray = [];
 }
 
 // ----------------------------------------------------------------------------
@@ -149,6 +204,15 @@ async function changePublishText(){
     console.log(rosType)
 }
 
+/* <input type="checkbox" id="checkbox-1" value="Option 1">
+<label for="checkbox-1">Option 1</label><br>
+
+<input type="checkbox" id="checkbox-2" value="Option 2">
+<label for="checkbox-2">Option 2</label><br>
+
+<input type="checkbox" id="checkbox-3" value="Option 3">
+<label for="checkbox-3">Option 3</label><br> */
+
 // async function publishMessage1() {
 //     // Retrieve the selected dropdown value
 //     const dropdown = document.getElementById("topic-dropdown2");
@@ -172,28 +236,47 @@ async function changePublishText(){
 //publishBtn.addEventListener("click", publishMessage);
 dropdown2.addEventListener("change", changePublishText); 
 
+var toggleValue = false;
+
+function toggleButton() {
+    const button = document.getElementById('toggle-button');
+
+    toggleValue = !toggleValue;
+
+    if (toggleValue) {
+    button.textContent = 'Stop';
+    } else {
+    button.textContent = 'Start';
+    }
+
+    console.log('Current value:', toggleValue);
+}
 
 
-// async function publishMessage(topicName, messageType, messageData) {
-//     // Create a ROSLIB.Topic object
-//     const topic = new ROSLIB.Topic({
-//       ros: ros,
-//       name: topicName,
-//       messageType: messageType
-//     });
-  
-//     // Create a message object and set its data
-//     const message = new ROSLIB.Message({
-//       data: messageData
-//     });
-  
-//     // Publish the message
-//     topic.publish(message);
+function createInputs(topicList) {
+    const checkboxList = document.getElementById("checkbox-list");
+    checkboxList.innerHTML = ""
+
+    for (i=0; i < topicList["topics"].length; i++){
+        let checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = topicList["topics"][i];
+        checkbox.value = topicList["topics"][i];
     
-//     console.log(`Published message to topic '${topicName}': ${messageData}`);
-//   }
+        let label = document.createElement("label");
+        label.setAttribute("for", topicList["topics"][i]);
+        label.textContent = topicList["topics"][i];
+    
+        let lineBreak = document.createElement("br");
+    
+        let container = document.createElement("div");
+        container.appendChild(checkbox);
+        container.appendChild(label);
+        container.appendChild(lineBreak);
 
+        checkboxList.append(container);
+    }
+}
 
 // Initialise Functions
 getTopics()
-
