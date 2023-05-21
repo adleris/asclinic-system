@@ -11,7 +11,7 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import Pose, Point, Quaternion
 
 from dijkstra import Graph, Vertex, Edge
-import node_planning 
+import node_planning
 from obstacle_avoidance import ObstacleAvoidance, point_distance
 #from visualise_path import PathVisualiser, ImageManager
 
@@ -72,6 +72,8 @@ class PathPlanner():
         NOTE: Assumes that we are at start.
         """
 
+        rospy.loginfo("Calculating path from " + str(start) + " to " + str(end) + ": " + str(self.path))
+
         self.path = self.graph.dijkstra(start, end)
         #TODO possible handling here for no path found
         self.path_idx = 0
@@ -89,6 +91,8 @@ class PathPlanner():
 
         # TODO: add handling for arriving at global target!
 
+        rospy.loginfo("Next local target: (id:" + str(next_path_point) +"):\n" + str(next_point))
+
     def received_curr_pose(self, msg: Pose) -> None:
         """
         Update our knowledge of the current Pose
@@ -97,9 +101,12 @@ class PathPlanner():
         """
         self.curr_pose = msg
 
+        rospy.loginfo("next pose received:\n" + str(msg))
+
         # check if we had arrived at the next local vertex and should 
         # publish the next segment of the path
         if self._check_if_at_target_node():
+            rospy.loginfo("At target node!")
             self.publish_next_local_target()
 
     def received_global_target(self, msg: Point) -> None:
@@ -114,10 +121,13 @@ class PathPlanner():
         """
         self.global_target = msg
 
+        rospy.loginfo("Received new global target ({}, {})".format(msg.x, msg.y))
+
         try:
             self.global_target_id : int = self._vertex_id_from_point(self.global_target)
         except VertexNotFoundException:
             # couldn't find a vertex at those coordinates. Do nothing.
+            rospy.logerr("Could not lookup global target!")
             return
 
         # if we haven't set a path yet, then we need to set up our first start location
@@ -130,6 +140,8 @@ class PathPlanner():
             current_vertex_id : int = self._vertex_id_from_point(HARDCODED_START_POINT)
         else:
             current_vertex_id : int = self.path[self.path_idx]
+
+        print("\033[33mabout to recalculate path from {} to {}\033[0m".format(current_vertex_id, self.global_target_id))
         self._recalculate_path(current_vertex_id, self.global_target_id)
 
         self.publish_next_local_target()
