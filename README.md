@@ -18,6 +18,15 @@ Then start up the image by using:
 docker-compose run ros-runner
 ```
 
+## Running the type-hint remover
+
+Python3.8, which is used by ROS1, isn't compatible with all of the type hint
+options supported by more modern python. If these are used, you won't be able
+to run your code. The `strip-hints` module is useful to remove these hints.
+
+To run it, run `catkin_ws/src/asclinic_pkg/src/docker-strip-hints.bash` from
+the directory that your files are in.
+
 ## Removing the image
 
 ```

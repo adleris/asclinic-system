@@ -5,4 +5,5 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
+COPY strip-hints /root/strip-hints
 
