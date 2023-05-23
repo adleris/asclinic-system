@@ -1,0 +1,52 @@
+/* CSS styles for the table */
+table {
+  width: 100%;
+}
+
+/* CSS styles for the table cells (columns) */
+td {
+  vertical-align: top;
+}
+
+/* CSS styles for the first column */
+td:first-child {
+  width: 50%;
+}
+
+/* CSS styles for the second column */
+td:nth-child(2) {
+  width: 50%;
+}
+
+/* CSS styles for center alignment */
+.center {
+  text-align: center;
+}
+
+
+/* .console{
+    width:      50%; 
+    height:     100vh; 
+    float:      left;
+    border:     solid 2px black;
+    
+} */
+
+#console-wrapper {
+  position: absolute;
+  /* top: 10%;
+  left: 1%; */
+  width: 48%;
+  height: 80%;
+  overflow-y: auto;
+  border:     solid 2px black;
+  margin-top: 10px;
+}
+
+#console {
+  height: 100%;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  padding-top: 5px;
+}
+

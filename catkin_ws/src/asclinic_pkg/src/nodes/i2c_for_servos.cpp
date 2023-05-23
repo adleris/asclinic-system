@@ -81,10 +81,10 @@ void servoSubscriberCallback(const asclinic_pkg::ServoPulseWidth& msg)
 	// > in the range [1000,2000]
 	if (pulse_width_in_us > 0)
 	{
-		if (pulse_width_in_us < 1000)
-			pulse_width_in_us = 1000;
-		if (pulse_width_in_us > 2000)
-			pulse_width_in_us = 2000;
+		if (pulse_width_in_us < 600)
+			pulse_width_in_us = 800;
+		if (pulse_width_in_us > 2400)
+			pulse_width_in_us = 2400;
 	}
 
 	// Call the function to set the desired pulse width

@@ -69,6 +69,8 @@ import cv2.aruco as aruco
 # Package to convert between ROS and OpenCV Images
 from cv_bridge import CvBridge
 
+from datetime import datetime
+
 
 
 # DEFINE THE PARAMETERS
@@ -88,7 +90,7 @@ MARKER_SIZE = 0.250
 #   Note: ensure that this path already exists
 #   Note: images are only saved when a message is received
 #         on the "request_save_image" topic.
-SAVE_IMAGE_PATH = "~/saved_camera_images/"
+SAVE_IMAGE_PATH = "/home/asc08/saved_dynamic_move/"
 
 # > A flag for whether to display the images captured
 SHOULD_SHOW_IMAGES = False
@@ -123,6 +125,7 @@ class ArucoDetector:
         self.camera_frame_height = DESIRED_CAMERA_FRAME_HEIGHT
         self.camera_fps = DESIRED_CAMERA_FPS
 
+        self.distancearray = []
         # > For capturing from a USB camera:
         #   > List the contents of /dev/video* to determine
         #     the number of the USB camera
@@ -233,8 +236,8 @@ class ArucoDetector:
         #   saved during the calibration procedure.
         # > Note the that values hardcoded here may give
         #   meaningless results for your camera
-        self.intrinic_camera_matrix = np.array( [[1726,0,1107] , [0,1726,788] , [0,0,1]], dtype=float)
-        self.intrinic_camera_distortion  = np.array( [[ 5.5252e-02, -2.3523e-01, -1.0507e-04, -8.9834e-04, 2.4028e-01]], dtype=float)
+        self.intrinic_camera_matrix = np.array( [[1405,0,966] , [0,1399,605] , [0,0,1]], dtype=float)
+        self.intrinic_camera_distortion  = np.array( [[ 0.08885923, -0.19933783,  0.0082785,   0.00237787, -0.01476223]], dtype=float)
 
         # Read the a camera frame as a double check of the properties
         # > Read the frame
@@ -282,10 +285,10 @@ class ArucoDetector:
             # Process any ArUco markers that were detected
             if aruco_ids is not None:
                 # Display the number of markers found
-                if (len(aruco_ids)==1):
-                    rospy.loginfo("[ARUCO DETECTOR] Found " + "{:3}".format(len(aruco_ids)) + " marker  with id  = " + str(aruco_ids[:,0]))
-                else:
-                    rospy.loginfo("[ARUCO DETECTOR] Found " + "{:3}".format(len(aruco_ids)) + " markers with ids = " + str(aruco_ids[:,0]))
+                # if (len(aruco_ids)==1):
+                #     rospy.loginfo("[ARUCO DETECTOR] Found " + "{:3}".format(len(aruco_ids)) + " marker  with id  = " + str(aruco_ids[:,0]))
+                # else:
+                #     rospy.loginfo("[ARUCO DETECTOR] Found " + "{:3}".format(len(aruco_ids)) + " markers with ids = " + str(aruco_ids[:,0]))
                 # Outline all of the markers detected found in the image
                 current_frame_with_marker_outlines = aruco.drawDetectedMarkers(current_frame.copy(), aruco_corners_of_all_markers, aruco_ids, borderColor=(0, 220, 0))
 
@@ -318,7 +321,7 @@ class ArucoDetector:
                     #tvec = this_tvec_estimate[0]
 
                     # Draw the marker's axes onto the image
-                    current_frame_with_marker_outlines = cv2.drawFrameAxes(current_frame_with_marker_outlines, self.intrinic_camera_matrix, self.intrinic_camera_distortion, rvec, tvec, 0.5*MARKER_SIZE)
+                    # current_frame_with_marker_outlines = cv2.drawFrameAxes(current_frame_with_marker_outlines, self.intrinic_camera_matrix, self.intrinic_camera_distortion, rvec, tvec, 0.5*MARKER_SIZE)
                     
                     # At this stage, the variable "rvec" and "tvec" respectively
                     # describe the rotation and translation of the marker frame
@@ -342,9 +345,6 @@ class ArucoDetector:
                     # > y-axis points to the down  when looking out of the lens along the z-axis
 
                     # Display the rvec and tvec
-                    rospy.loginfo("[ARUCO DETECTOR] for id = " + str(this_id) + ", tvec = [ " + str(tvec[0]) + " , " + str(tvec[1]) + " , " + str(tvec[2]) + " ]" )
-                    #rospy.loginfo("[ARUCO DETECTOR] for id = " + str(this_id) + ", rvec = [ " + str(rvec[0]) + " , " + str(rvec[1]) + " , " + str(rvec[2]) + " ]" )
-
                     # ============================================
                     # TO BE FILLED IN FOR WORLD FRAME LOCALISATION
                     # ============================================
@@ -353,8 +353,81 @@ class ArucoDetector:
                     # an estimate of the camera's location within
                     # the world frame, and hence an estimate of
                     # robot's pose on which the camera is mounted. 
-                    #
-                    # ADD YOUR CODE HERE
+                    
+                    if (this_id == 13):
+                    
+                        # Translation matrix marker_i to camera in camera coordinates
+                        # T_mc = np.matrix([
+                        #     [Rmat[0,0], Rmat[0,1], Rmat[0,2], 1.0274*tvec[0]+0.9570],
+                        #     [Rmat[1,0], Rmat[1,1], Rmat[1,2], tvec[1]              ],
+                        #     [Rmat[2,0], Rmat[2,1], Rmat[2,2], 0.9561*tvec[2]+0.0769],
+                        #     [0        , 0        , 0        , 1                    ],
+                        # ])
+                        
+                        phi = (-np.linalg.norm(rvec)*np.sign(rvec)[1])[0]
+                        # print(phi)
+                        #*(180/np.pi)*np.sign(rvec)[1]
+                        # print(np.cos(phi))
+                        # print(np.sin(phi))
+                        # print(tvec[0][0])
+                        # print(tvec[1][0])
+                        T_mc = np.matrix([
+                            [np.cos(phi), -np.sin(phi), tvec[0][0]],
+                            [np.sin(phi), np.cos(phi),  tvec[2][0]],
+                            [0            , 0            ,  1]
+                        ])
+
+                        origin = np.matrix([
+                            [0],
+                            [0],
+                            [1]
+                        ])
+
+                        marker_position = np.matrix([
+                            [1, 0, 0.5],
+                            [0, 1, 0],
+                            [0, 0, 1]
+                        ])
+
+                        T_mc_inv = np.linalg.inv(T_mc)
+
+                        position_vector = np.matmul(marker_position, np.matmul(T_mc_inv, origin))
+                        # print("x: " + str(position_vector[0][0]) + " y: " + str(position_vector[1][0]) + " phi: "+ str(phi*(180/np.pi)))
+                        # print(phi)
+
+                        # T_wm = np.pmatrix([
+                        #     [1,0,0,0],
+                        #     [0,1,0,0],
+                        #     [0,0,1,0],
+                        #     [0,0,0,1]
+                        # ])
+
+                        # output = 
+
+                        # print(T_mc)
+
+                        # pose_x = 1.0274*tvec[0]+0.9570
+                        # pose_y = 0.9561*tvec[2]+0.0769
+                        # pose_x = tvec[2]
+                        # pose_y = tvec[0]
+                        # pose_phi = np.linalg.norm(rvec)*(180/np.pi)*np.sign(rvec)[1]
+
+                        
+
+                        # print("saving image " + str(self.save_image_counter) + " at " + str(datetime.now()))
+                        # self.save_image_counter += 1
+                        # Write the image to file
+                        # temp_filename = SAVE_IMAGE_PATH + "aruco_image" + str(self.save_image_counter) + ".jpg"
+                        # cv2.imwrite(temp_filename,current_frame)
+                        # self.distancearray.append(np.linalg.norm(rvec)*(180/np.pi)*-np.sign(rvec)[1])
+                        # a = np.array(self.distancearray)
+                        # rospy.loginfo(np.linalg.norm(rvec)*(180/np.pi)*-np.sign(rvec)[1])
+                        # # rospy.loginfo(np.sign(rvec))
+                        # rospy.loginfo("[ARUCO DETECTOR] for id = " + str(this_id) + ": pose_x: " + str(pose_x) + " pose_y: " + str(pose_y) + " pose_phi: " + str(pose_phi))
+                        # print("mean: " + str(np.mean(a)) + "; variance: " + str(np.var(a)) + "; samples: " + str(len(self.distancearray)))
+                        # if len(self.distancearray) == 100:
+                        #     exit()
+                        # rospy.loginfo("[ARUCO DETECTOR] for id = " + str(this_id) + ", rvec = [ " + str(rvec[0]) + " , " + str(rvec[1]) + " , " + str(rvec[2]) + " ]" )
                     #
                     # PUBLISH THE ESTIMATE OF THE ROBOT'S POSE
                     # FOR USE BY OTHER ROS NODES

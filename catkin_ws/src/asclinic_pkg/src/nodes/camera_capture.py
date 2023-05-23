@@ -60,9 +60,9 @@ from cv_bridge import CvBridge
 USB_CAMERA_DEVICE_NUMBER = 0
 
 # > Properties of the camera images captured
-DESIRED_CAMERA_FRAME_HEIGHT = 1080
-DESIRED_CAMERA_FRAME_WIDTH = 1920
-DESIRED_CAMERA_FPS = 5
+DESIRED_CAMERA_FRAME_HEIGHT = 480
+DESIRED_CAMERA_FRAME_WIDTH = 640
+DESIRED_CAMERA_FPS = 30
 
 # > For the size of the chessboard grid
 CHESSBOARD_SIZE_HEIGHT = 9
@@ -72,7 +72,7 @@ CHESSBOARD_SIZE_WIDTH  = 6
 #   Note: ensure that this path already exists
 #   Note: images are only saved when a message is received
 #         on the "request_save_image" topic.
-SAVE_IMAGE_PATH = "~/saved_camera_images/"
+SAVE_IMAGE_PATH = "/home/mattheww/ASC/saved_camera_images/"
 
 # > A flag for whether to save any images that contains
 #   a camera calibration chessboard
@@ -226,7 +226,12 @@ class CameraCapture:
         if (return_flag == True):
             # Publish the camera frame
             rospy.loginfo("[CAMERA CAPTURE] Now publishing camera frame")
-            self.image_publisher.publish(self.cv_bridge.cv2_to_imgmsg(current_frame))
+            self.image_publisher.publish(self.cv_bridge.cv2_to_imgmsg(current_frame, encoding="passthrough"))
+            # temp_image = self.cv_bridge.cv2_to_imgmsg(current_frame, encoding="passthrough")
+            # cv2.imshow('frame', self.cv_bridge.imgmsg_to_cv2(temp_image, desired_encoding='passthrough'))
+            # cv2.imshow('frame', current_frame)
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     return 
 
             if (SHOULD_SAVE_CHESSBOARD_IMAGES):
                 # Check if the camera frame contains a calibration
