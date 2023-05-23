@@ -3,8 +3,8 @@
 from asclinic_pkg.msg import PoseFloat32
 import rospy
 
-NAMESPACE = "asc/control"
-NODE_NAME = f"{NAMESPACE}/kalman_filter"
+NAMESPACE = "control"
+NODE_NAME = "kalman_filter"
 
 # Constants for easy access to variables
 X = 0
@@ -23,6 +23,7 @@ class kalman_filter:
 
     def update_pose(self, event):
         # This takes the change to pose and adds them to the current pose to be published
+        # TODO Change this to the Message
         self.currPose[X]     += event.x
         self.currPose[Y]     += event.y
         self.currPose[PHI]   += event.phi
@@ -35,7 +36,6 @@ class kalman_filter:
         self.pose_publisher.publish(current_pose)
 
 if __name__ == "__main__":
-    global NODE_NAME
 
     rospy.init_node(NODE_NAME)
     kFilter = kalman_filter()

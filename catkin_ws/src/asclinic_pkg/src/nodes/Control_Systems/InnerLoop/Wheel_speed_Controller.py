@@ -4,8 +4,8 @@ import rospy
 from asclinic_pkg.msg import LeftRightFloat32, LeftRightInt32
 from math import pi
 
-NAMESPACE = "asc/control"
-NODE_NAME = f"{NAMESPACE}/wheel_angular_speed_controller"
+NAMESPACE = "control"
+NODE_NAME = "wheel_angular_speed_controller"
 
 ENCODER_TICKS_PER_ROTATION = 2240
 SAMPLE_PERIOD_SEC = 0.05
@@ -108,8 +108,7 @@ class wheelAngularSpeedController:
 
       
 if __name__ == "__main__":
-    global NODE_NAME
-    
+
     rospy.init_node(NODE_NAME)
     controller = wheelAngularSpeedController()
     rospy.spin() 
