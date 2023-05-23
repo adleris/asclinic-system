@@ -59,7 +59,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(
   FILES
-  xyphiPose.msg
   ServoPulseWidth.msg
   TemplateMessage.msg
   LeftRightInt32.msg
