@@ -64,7 +64,7 @@ class MainNode:
         rospy.Timer(rospy.Duration(1/self.main_node_freq), self.timerCallbackForMainFunction)
 
     # Respond to /asc/system_start callback
-    def requestSystemStart(self, event):
+    def callbackSystemStart(self, event):
         rospy.loginfo("[MainNode] /asc/system_start received: " + str(event.data))
         self.f_system_start = event.data
         
@@ -96,7 +96,7 @@ class MainNode:
             self.f_emergency_idle   = False
         
         if (self.s_main_state == "Idle" and self.f_system_start == True):
-            self.f_system_drive = 0
+            self.f_system_start = False
             transitionMainStateToDrive()
 
         if (self.s_main_state == "Drive" and self.f_at_global_target == True):
@@ -108,7 +108,7 @@ class MainNode:
             # Disable Driving
             self.pub_enable_drive(False)
             # Enable "Taking" a photo
-            self.pub_enable_photo(False)
+            self.pub_enable_photo(True)
 
         if (self.s_main_state == "Taking_Photo" and self.f_photo_taken == True)
             self.f_photo_taken = False
@@ -124,6 +124,7 @@ class MainNode:
         # Enable Driving
         self.pub_enable_drive(True)
         # Publish new global target
+        #TODO Add funcationality to update global target position
         self.global_target = self.map_data.global_target_positions["0"]
         self.pub_global_target(self.global_target)
         # Disable "Taking" a photo
