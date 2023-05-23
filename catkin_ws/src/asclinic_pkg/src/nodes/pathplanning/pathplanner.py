@@ -14,6 +14,7 @@ from dijkstra import Graph, Vertex, Edge
 import node_planning
 from obstacle_avoidance import ObstacleAvoidance, point_distance
 #from visualise_path import PathVisualiser, ImageManager
+from utilities import _mark_unused
 
 # send a global target at the start
 
@@ -237,14 +238,6 @@ class VertexNotFoundException(Exception):
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
-
-
-def _mark_unused(func):
-    """Decorator to mark a function as currently unsued, but kept for later utility"""
-    def wrapper(*args, **kwargs):
-        print(f"\033[31mWarning: Function {func.__name__!r} is marked as unused, please update the documentation.\033[0m")
-        return func(*args, **kwargs)
-    return wrapper
 
 
 if __name__ == "__main__":
