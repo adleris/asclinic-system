@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from asclinic_pkg.msg import PoseFloat32
+from math import pi
 import rospy
 
 NAMESPACE = "control"
@@ -21,6 +22,12 @@ class kalman_filter:
         self.currPose.x    += event.x
         self.currPose.y     += event.y
         self.currPose.phi   += event.phi
+
+        # Correcting theta to keep in range 
+        if self.currPose.phi <= -pi:
+            self.currPose.phi += 2 * pi
+        elif self.currPose.phi > pi:
+            self.currPose.phi -= 2 * pi
 
         # Set up and publishing pose
         self.pose_publisher.publish(self.currPose)
