@@ -5,7 +5,7 @@ from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import cos, sin 
 
 NAMESPACE = "asc/control"
-NODE_NAME = f"wheel_odometry"
+NODE_NAME = "wheel_odometry"
 
 # constants in m:
 WHEEL_BASE_METERS = 0.218
