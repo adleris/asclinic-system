@@ -55,7 +55,7 @@ class PathPlanner():
         rospy.Subscriber("/obstacle_avoidance/detection", Bool, self.received_obstacle_detection)
 
         self.local_target_pub: rospy.Publisher = rospy.Publisher(NODE_NAME + "/next_target", Point, queue_size=10)
-        self.at_global_target_pub rospy.Publisher = rospy.Publisher(NODE_NAME + "/at_global_target", Bool, queue_size=1)
+        self.at_global_target_pub: rospy.Publisher = rospy.Publisher(NODE_NAME + "/at_global_target", Bool, queue_size=1)
 
         rospy.loginfo("Initialised Path Planner.")
 
