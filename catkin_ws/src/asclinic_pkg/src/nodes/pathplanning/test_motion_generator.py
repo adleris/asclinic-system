@@ -31,14 +31,14 @@ class MotionGenerator():
 
     def new_target_cb(self, data : Point) -> None:
         """interpolate a new path b/w current point and next target"""
-        rospy.loginfo("Received new target")
+        rospy.loginfo("\033[33mReceived new target\033[0m")
         self._gen_new_points(data)
         self.has_target = True
-        rospy.loginfo(self._point_list)
+        rospy.logdebug(self._point_list)
 
     def at_global_target_cb(self, data : Bool) -> None:
         """callback for arrival at global target"""
-        rospy.loginfo("arrived at global target")
+        rospy.loginfo("\033[32mArrived at global target\033[0m")
         self.has_target = False
 
     def publish_next_point_cb(self, timer_event) -> None:
@@ -49,11 +49,11 @@ class MotionGenerator():
 
         next_point : Point = self._get_next_point()
         if next_point is not None:
-            rospy.loginfo("pub: point")
+            rospy.loginfo(f"pub: point ({next_point.x}, {next_point.y})")
             self.pub.publish(Pose(next_point, Quaternion(0,0,0,1)))
             return
         else:
-            rospy.loginfo("pub: End of path")
+            rospy.loginfo("\033[33mpub: End of path\033[0m")
             return
 
     def _get_next_point(self) -> Point:
