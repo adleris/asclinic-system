@@ -4,9 +4,16 @@ Software for running the robot that is the focus of the Autonomous Systems Clini
 
 # Docker instructions
 
-Use the `ros:noetic-ros-core` image as the base. Because we need to run the
-image as a single session, we'll need to install `tmux` too. To set up the image,
-we'll build a docker image with that as the base. Run from the root of the repo:
+In a space-conserving install, the `ros:noetic-ros-core` image can be used. It
+doesn't include compilation tools, but it will be able to run python scripts
+if there is no need for any C++ files to be compiled.
+
+If C++ files or custom message types are required, use the `ros:noetic-ros-base`
+image as the base. Because we need to run the image as a single session, we'll
+also need to install and use `tmux`. Some quick hints for `tmux` can be found
+[here](https://tmuxcheatsheet.com/). 
+
+To set up the image, run from the root of the repo:
 
 ```
 docker build . -f Dockerfile -t ros-image
