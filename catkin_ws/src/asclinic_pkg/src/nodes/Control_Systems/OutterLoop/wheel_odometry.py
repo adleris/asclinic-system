@@ -34,7 +34,7 @@ class wheel_odometry:
         changeToPose.y   = delta_s * sin(self.currPhi + 0.5 * delta_phi)
         changeToPose.phi = delta_phi
 
-        rospy.loginfo(f"delta_x: {changeToPose.x} delta_y: {changeToPose.y} delta_phi: {changeToPose.phi}")
+        # rospy.loginfo(f"delta_x: {changeToPose.x} delta_y: {changeToPose.y} delta_phi: {changeToPose.phi}")
 
         self.change_pos_publisher.publish(changeToPose)
 

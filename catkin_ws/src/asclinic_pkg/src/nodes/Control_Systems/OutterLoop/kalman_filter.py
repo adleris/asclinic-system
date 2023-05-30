@@ -18,7 +18,6 @@ class kalman_filter:
 
     def update_pose(self, event):
         # This takes the change to pose and adds them to the current pose to be published
-        # TODO Change this to the Message
         self.currPose.x    += event.x
         self.currPose.y     += event.y
         self.currPose.phi   += event.phi
@@ -30,6 +29,7 @@ class kalman_filter:
             self.currPose.phi -= 2 * pi
 
         # Set up and publishing pose
+        rospy.loginfo(f"x: {self.currPose.x} y: {self.currPose.y} phi: {self.currPose.phi}")
         self.pose_publisher.publish(self.currPose)
 
 if __name__ == "__main__":

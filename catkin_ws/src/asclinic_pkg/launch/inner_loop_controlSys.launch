@@ -11,32 +11,35 @@
             pkg     = "asclinic_pkg"
             name    = "wheel_angular_speed_controller"
             output  = "screen"
-            type    = "Wheel_speed_Controller.py"
+            type    = "wheel_speed_controller.py"
         />
 
-        	<node
+        <node
 			pkg    = "asclinic_pkg"
 			name   = "i2c_for_motors"
 			output = "screen"
 			type   = "i2c_for_motors"
 		/>
+
         <node
             pkg     = "asclinic_pkg"
             name    = "kalman_filter"
             output  = "screen"
-            type    = "kalman_filter"
+            type    = "kalman_filter.py"
         />
+
         <node
             pkg     = "asclinic_pkg"
             name    = "wheel_odometry"
             output  = "screen"
-            type    = "wheel_odometry"
+            type    = "wheel_odometry.py"
         />
+
         <node
             pkg     = "asclinic_pkg"
             name    = "motion_controller"
             output  = "screen"
-            type    = "motion_controller"
+            type    = "motion_controller.py"
         />
     </group>
 </launch>

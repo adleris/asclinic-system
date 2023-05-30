@@ -5,10 +5,12 @@ from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import pi, atan2
 import rospy
 
+# TODO add enable motors motors on "/asc/enable_drive" - Bool
+
 NODE_NAME    = "motion_controller"
 NAME_SPACE   = "control"
 
-STATE_IDE       = "IDEL"
+STATE_IDLE      = "IDLE"
 STATE_ROTATE    = "ROTATE"
 STATE_STRAIGHT  = "STRAIGHT"
 
@@ -18,11 +20,11 @@ class motion_controller():
         
         self.rotationSpeed = 0.5
         self.straightLineSpeed = 3
-        self.rotationTolarance = (5/180) * pi 
+        self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05
         self.stateQueue = []
         
-        self.state = STATE_IDE
+        self.state = STATE_IDLE
         self.IDEL_stateCounter = 0
         self.goal_pose = PoseFloat32(0, 0, 0) 
 
@@ -34,9 +36,11 @@ class motion_controller():
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
         self.IDEL_stateCounter = 0
-        self.state = STATE_IDE
+        self.state = STATE_IDLE
         refSignals = LeftRightFloat32(0,0)
         self.RefPublisher.publish(refSignals)
+        # TODO add queue data structure 
+        # rotate and then move 
         self.stateQueue.append(STATE_ROTATE)
         
         self.goal_point = event
@@ -82,33 +86,39 @@ class motion_controller():
         self.current_pose = event
         
         # Transitions for States:
-        if (self.state == STATE_IDE) and (self.IDEL_stateCounter >= 5):
+        if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 5):
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop()
 
         
         if (self.state == STATE_ROTATE) and self._rotationTransition():
+            #remove this 
             self.stateQueue.append(STATE_STRAIGHT)
             self.IDEL_stateCounter = 0
-            self.state = STATE_IDE
+            self.state = STATE_IDLE
                     
         
         
         # Outputs for the States:
         refSignals = LeftRightFloat32()
-        if self.state == STATE_IDE:
-            refSignals.left     = 0
-            refSignals.right    = 0
-            self.IDEL_stateCounter += 1
         
-        elif self.state == STATE_ROTATE:
+        
+        if self.state == STATE_ROTATE:
+            # TODO Calculate if left or right rotations 
             refSignals.left     = self.rotationSpeed
             refSignals.right    = -self.rotationSpeed
         
         elif self.state == STATE_STRAIGHT:
+            #? Maybe add a ramp function 
+            #? also think about breaking halfway 
             refSignals.left     = self.straightLineSpeed
             refSignals.right    = self.straightLineSpeed
+        else:
+            refSignals.left     = 0
+            refSignals.right    = 0
 
+            if self.state == STATE_IDLE:
+                self.IDEL_stateCounter += 1
 
         self.RefPublisher.publish(refSignals)
 

@@ -79,9 +79,9 @@ class wheelAngularSpeedController:
 
         self.PWM_publisher.publish(currOutput)
 
-        rospy.loginfo(f"\nLeft Wheel:\nCurrent Error: {self.error[0][LEFT_WHEEL]}\t\tCurrent Output:{currOutput.left}\n"
-                       f"Right Wheel:\nCurrent Error: {self.error[0][RIGHT_WHEEL]}\t\tCurrent Output:{currOutput.right}\n"
-        )
+        # rospy.loginfo(f"\nLeft Wheel:\nCurrent Error: {self.error[0][LEFT_WHEEL]}\t\tCurrent Output:{currOutput.left}\n"
+        #                f"Right Wheel:\nCurrent Error: {self.error[0][RIGHT_WHEEL]}\t\tCurrent Output:{currOutput.right}\n"
+        # )
 
         # translating error down a time step, for the next time
         self.error[1:3] = self.error[0:2]
