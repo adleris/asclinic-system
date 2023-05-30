@@ -1,11 +1,12 @@
+#!/usr/bin/env python
 
-from geometry_msg import Point
+from geometry_msgs.msg import Point
 from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import pi, atan2
 import rospy
 
-NODENAME    = "motion_controller"
-NAMESPACE   = "asc/control"
+NODE_NAME    = "motion_controller"
+NAME_SPACE   = "control"
 
 STATE_IDE       = "IDEL"
 STATE_ROTATE    = "ROTATE"
@@ -19,17 +20,19 @@ class motion_controller():
         self.straightLineSpeed = 3
         self.rotationTolarance = (5/180) * pi 
         self.locationTolarance = 0.05
+        self.stateQueue = []
         
         self.state = STATE_IDE
         self.IDEL_stateCounter = 0
         self.goal_pose = PoseFloat32(0, 0, 0) 
 
 
-        self.RefPublisher = rospy.Publisher(f"{NAMESPACE}/wheel_speeds_reference", PoseFloat32, queue_size=1)
-        rospy.Subscriber(f"{NAMESPACE}/sys_pose", PoseFloat32, self.control_main_loop, queue_size=1)
+        self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
+        rospy.Subscriber(f"{NAME_SPACE}/sys_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("planner/next_target", Point, self.add_to_location_queue, queue_size=1)
         
     def add_to_location_queue(self, event):
+        rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
         self.IDEL_stateCounter = 0
         self.state = STATE_IDE
         refSignals = LeftRightFloat32(0,0)
@@ -75,11 +78,12 @@ class motion_controller():
 
 
     def control_main_loop(self, event):
+        rospy.loginfo(f"Current State: {self.state}")
         self.current_pose = event
         
         # Transitions for States:
         if (self.state == STATE_IDE) and (self.IDEL_stateCounter >= 5):
-            if self.stateQueue:
+            if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop()
 
         
@@ -108,9 +112,8 @@ class motion_controller():
 
         self.RefPublisher.publish(refSignals)
 
+if __name__ == "__main__":
 
-
-
-
-
-
+    rospy.init_node(NODE_NAME)
+    controller = motion_controller()
+    rospy.spin()
