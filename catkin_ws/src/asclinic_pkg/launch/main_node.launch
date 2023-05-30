@@ -35,5 +35,14 @@
 			type   = "i2c_for_servos"
 		/>
 
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "camera_pose_estimation"
+			output = "screen"
+			type   = "camera_pose_estimation.py"
+		/>
+
+
+
 	</group>
 </launch>

@@ -18,6 +18,8 @@ class CameraServo:
         rospy.Subscriber("/asc"+"/pan_deg", Int32, self.adjust_pan_angle)
         # Subscriber for tilt control
         rospy.Subscriber("/asc"+"/tilt_deg", Int32, self.adjust_tilt_angle)
+        # Setup publisher to track 
+        self.pub_pan = rospy.Publisher("/asc"+"/pose_camera_pan", Int32, queue_size=10)
 
     def adjust_pan_angle(self, data):
         # pan 90 deg = 2150
@@ -29,11 +31,12 @@ class CameraServo:
         convertion_factor = Chebyshev.fit(deg_points, pwm_points, deg=1)
 
         # package data to be published
-        data_string = ServoPulseWidth()
-        data_string.channel = 3
-        data_string.pulse_width_in_microseconds = int(convertion_factor(angle))
+        PWM_string = ServoPulseWidth()
+        PWM_string.channel = 3
+        PWM_string.pulse_width_in_microseconds = int(convertion_factor(angle))
 
-        self.servo_pub.publish(data_string)
+        self.servo_pub.publish(PWM_string)
+        self.pub_pan.publish(angle)
     
     def adjust_tilt_angle(self, data):
         # tilt 0 deg = 1360
@@ -45,11 +48,11 @@ class CameraServo:
         convertion_factor = Chebyshev.fit(deg_points, pwm_points, deg=1)
 
         # package data to be published
-        data_string = ServoPulseWidth()
-        data_string.channel = 4
-        data_string.pulse_width_in_microseconds = int(convertion_factor(angle))
+        PWM_string = ServoPulseWidth()
+        PWM_string.channel = 4
+        PWM_string.pulse_width_in_microseconds = int(convertion_factor(angle))
 
-        self.servo_pub.publish(data_string)
+        self.servo_pub.publish(PWM_string)
 
 
 

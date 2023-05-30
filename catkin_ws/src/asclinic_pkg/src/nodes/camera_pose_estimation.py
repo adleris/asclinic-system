@@ -51,8 +51,9 @@ import rospy
 
 # Import the standard message types
 from std_msgs.msg import UInt32
+from std_msgs.msg import Int32
 from sensor_msgs.msg import Image
-from asclinic_pkg.msg import xyphiPose
+from asclinic_pkg.msg import PoseFloat32
 
 # Import numpy
 import numpy as np
@@ -105,7 +106,11 @@ class ArucoDetector:
 
         self.marker_data = MapData()
 
-        self.pose_c_pub = rospy.Publisher("/asc"+"/camera_pose", xyphiPose, queue_size=10)
+        self.pose_c_pub = rospy.Publisher("/asc"+"/pose_camera_estimation", PoseFloat32, queue_size=10)
+
+        # Setup Subscriber to get camera pan pose
+        rospy.Subscriber("/asc"+"/pose_camera_pan", Int32, self.adjust_pan_angle)
+        self.phi_servo = 0
 
         # > Put the desired video capture properties into local variables
         self.camera_frame_width  = DESIRED_CAMERA_FRAME_WIDTH
@@ -234,6 +239,8 @@ class ArucoDetector:
         rospy.Timer(rospy.Duration(1/self.camera_fps), self.timerCallbackForCameraRead)
 
 
+    def adjust_pan_angle(self, data):
+        pass
 
     # Respond to timer callback
     def timerCallbackForCameraRead(self, event):
@@ -276,7 +283,8 @@ class ArucoDetector:
                                 "e_dist":   tvec[2][0]**2 + tvec[0][0]**2
                             }
                     
-
+                if pose_info == None:
+                    return
                 # Translation matrix from marker frame to camera frame
                 phi_c = pose_info["phi_c"]
                 T_mc = np.matrix([
@@ -310,12 +318,11 @@ class ArucoDetector:
                 # print(np.degrees(phi_m))
                 
                 phi = phi_m - phi_c # negative to make the math work out
-                print(phi)
                 # print(np.degrees(phi))
                 if (abs(phi) > np.pi):
                     phi = 2*np.pi - np.sign(phi)*phi
                 # print("x_c: " + str(x_c) + " y_c: " + str(y_c) + " phi: " + str(np.degrees(phi)))
-                data_string = ServoPulseWidth()
+                data_string = PoseFloat32()
                 data_string.x = x_c
                 data_string.y = y_c
                 data_string.phi = np.degrees(phi)
