@@ -64,6 +64,7 @@ add_message_files(
   TemplateMessage.msg
   LeftRightInt32.msg
   LeftRightFloat32.msg
+  PoseFloat32.msg
 )
 
 ## Generate services in the 'srv' folder

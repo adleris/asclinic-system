@@ -110,7 +110,7 @@ class MainNode:
             # Enable "Taking" a photo
             self.pub_enable_photo(True)
 
-        if (self.s_main_state == "Taking_Photo" and self.f_photo_taken == True)
+        if (self.s_main_state == "Taking_Photo" and self.f_photo_taken == True):
             self.f_photo_taken = False
             transitionMainStateToDrive()
             
