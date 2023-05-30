@@ -46,7 +46,7 @@ class ObstacleAvoidance:
         self.obstacle_pos: Point = None
 
         self.detection_publisher = rospy.Publisher(node_name+"/detection", Bool, queue_size=10)
-        rospy.Subscriber("control/curr_pose", Pose, self.poseReceivedCallback)
+        rospy.Subscriber("planner/curr_pose", Pose, self.poseReceivedCallback)
         rospy.Subscriber("sensors/obstacle_scan", Bool, self.obstacleInRangeCallback)
         rospy.loginfo("Obstacle avoidance started.")
 

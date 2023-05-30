@@ -24,7 +24,7 @@ class MotionGenerator():
         rospy.Subscriber("planner/next_target", Point, self.new_target_cb)
         rospy.Subscriber("planner/at_global_target", Bool, self.at_global_target_cb)
 
-        self.pub : rospy.Publisher = rospy.Publisher("/control/curr_pose", Pose, queue_size=10)
+        self.pub : rospy.Publisher = rospy.Publisher("/planner/curr_pose", Pose, queue_size=10)
 
         # publish new point every 1Hz
         rospy.Timer(rospy.Duration(1), self.publish_next_point_cb)

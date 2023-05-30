@@ -22,6 +22,7 @@ NODE_NAME = "planner"
 
 HARDCODED_START_POINT = Point(5.49216, 0.541588, 0)
 HARDCODED_START_POSE  = Pose(HARDCODED_START_POINT, Quaternion(0,0,0,1))
+AT_VERTEX_DISTANCE = 0.1 # metres
 
 class PathPlanner():
 
@@ -37,9 +38,6 @@ class PathPlanner():
         self.path : list[tuple[float, float]] = []
         self.path_idx : int = 0
 
-        # holds the current edge we are traversing
-        self.current_edge : Edge
-
 
         # data stores for current state
         # for the first case of the problem, always start at a given location (node id 2 here)
@@ -50,7 +48,7 @@ class PathPlanner():
 
 
         # set up subscribers
-        rospy.Subscriber("/control/curr_pose", Pose, self.received_curr_pose)
+        rospy.Subscriber("/planner/curr_pose", Pose, self.received_curr_pose)
         rospy.Subscriber("/main/global_target", Point, self.received_global_target)
         rospy.Subscriber("/obstacle_avoidance/detection", Bool, self.received_obstacle_detection)
 
@@ -89,8 +87,6 @@ class PathPlanner():
             rospy.loginfo("Reached the global target!")
             self.at_global_target_pub.publish(True)
             return
-
-        self.current_edge = None #TODO update
 
         next_path_point = self.path[self.path_idx]
         next_point = Point(next_path_point[0], next_path_point[1], 0)
@@ -142,7 +138,7 @@ class PathPlanner():
         #    we were at that node. Controller will see some large error signals in this case, but it should work as a first pass.
         # 4. Drive around until we localise by a marker, then add a an edge to the nearest vertex (and assume we can navigate to it!)
         if len(self.path) == 0:
-            current_vertex_id : int = self._vertex_id_from_point(HARDCODED_START_POINT)
+            current_vertex_id : int = self._vertex_id_from_point(HARDCODED_START_POINT) # << TODO should be curr_pose?
         else:
             current_vertex_id : int = self.path[self.path_idx]
 
@@ -232,7 +228,7 @@ class PathPlanner():
         if len(self.path) == 0:
             return False
         target_position : Point = self._point_from_vertex_tuple(self.path[self.path_idx])
-        return point_distance(self.curr_pose.position, target_position) < 0.2
+        return point_distance(self.curr_pose.position, target_position) < AT_VERTEX_DISTANCE
 
 
 class VertexNotFoundException(Exception):
