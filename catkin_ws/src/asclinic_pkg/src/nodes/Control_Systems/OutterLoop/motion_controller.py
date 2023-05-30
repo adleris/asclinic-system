@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from geometry_msgs.msg import Point
+from std_msgs.msg import Bool
 from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import pi, atan2
 import rospy
 
-# TODO add enable motors motors on "/asc/enable_drive" - Bool
+# TODO add a re orination at some point 
 
 NODE_NAME    = "motion_controller"
 NAME_SPACE   = "control"
@@ -26,6 +27,7 @@ class motion_controller():
         self.locationTolarance = 0.05 # isnt in use
         
         # state set up
+        self.enableDrive = False
         self.stateQueue = []
         self.state = STATE_IDLE
         self.IDEL_stateCounter = 0
@@ -36,6 +38,7 @@ class motion_controller():
         self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
         rospy.Subscriber(f"{NAME_SPACE}/sys_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("planner/next_target", Point, self.add_to_location_queue, queue_size=1)
+        rospy.Subscriber("/asc/enable_drive", Bool, self)
         
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
@@ -76,6 +79,8 @@ class motion_controller():
             else:
                 # rotate right
                 self.rotateMultiplier = -1
+    def setEnableDrive(self, event):
+        self.enableDrive = event.data
 
     def _rotationTransition(self):
         # This has all logic for if the system should get out of the rotation state
@@ -116,6 +121,10 @@ class motion_controller():
         if (self.state == STATE_ROTATE) and self._rotationTransition():
             self.IDEL_stateCounter = 0
             self.state = STATE_IDLE
+        
+        # This could just output zero i.e. needs to be true to output a drive signal
+        if not self.enableDrive:
+            self.state = STATE_IDLE
                     
         # Outputs for the States:
         refSignals = LeftRightFloat32()
@@ -130,9 +139,11 @@ class motion_controller():
             refSignals.left     = self.straightLineSpeed
             refSignals.right    = self.straightLineSpeed
         else:
+            # this is deafult for seafty 
             refSignals.left     = 0
             refSignals.right    = 0
 
+            # only incirments if in IDLE state
             if self.state == STATE_IDLE:
                 self.IDEL_stateCounter += 1
 
