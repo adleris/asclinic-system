@@ -16,19 +16,23 @@ STATE_STRAIGHT  = "STRAIGHT"
 
 class motion_controller():
     def __init__(self):
-       
+        # will be postive when theta need to increase (i.e turn left) and negative when need to decrease (i.e. turn right)
+        self.rotateMultiplier = 1
         
+        # constants needed for movment 
         self.rotationSpeed = 0.5
         self.straightLineSpeed = 3
         self.rotationTolarance = (2/180) * pi 
-        self.locationTolarance = 0.05
-        self.stateQueue = []
+        self.locationTolarance = 0.05 # isnt in use
         
+        # state set up
+        self.stateQueue = []
         self.state = STATE_IDLE
         self.IDEL_stateCounter = 0
+        
         self.goal_pose = PoseFloat32(0, 0, 0) 
 
-
+        # ros setup
         self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
         rospy.Subscriber(f"{NAME_SPACE}/sys_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("planner/next_target", Point, self.add_to_location_queue, queue_size=1)
@@ -39,9 +43,9 @@ class motion_controller():
         self.state = STATE_IDLE
         refSignals = LeftRightFloat32(0,0)
         self.RefPublisher.publish(refSignals)
-        # TODO add queue data structure 
-        # rotate and then move 
-        self.stateQueue.append(STATE_ROTATE)
+
+        # rotate and then move, queue need to be reset as well 
+        self.stateQueue = [STATE_ROTATE, STATE_STRAIGHT]
         
         self.goal_point = event
         self.calc_goal_pose()
@@ -50,9 +54,28 @@ class motion_controller():
         self.goal_pose.x = self.goal_point.x
         self.goal_pose.y = self.goal_point.y
 
+        # calculating the difference vectors for to calcuate the facing to get their
         diffVector_x = self.goal_point.x - self.current_pose.x
         diffVector_y = self.goal_point.y - self.current_pose.y
         self.goal_pose.phi = atan2(diffVector_y, diffVector_x)
+
+        # This is used to calculate which way to rotate
+        # this is for phi in [0, pi]
+        if self.current_pose.phi >= 0:
+            if self.current_pose.phi - pi < self.goal_pose.phi:
+                # rotate right
+                self.rotateMultiplier = -1
+            else:
+                # rotate left
+                self.rotateMultiplier = 1
+        # this is for phi in [0, -pi)
+        else:
+            if self.current_pose.phi + pi > self.goal_pose.phi:
+                # rotate left
+                self.rotateMultiplier = 1
+            else:
+                # rotate right
+                self.rotateMultiplier = -1
 
     def _rotationTransition(self):
         # This has all logic for if the system should get out of the rotation state
@@ -88,25 +111,18 @@ class motion_controller():
         # Transitions for States:
         if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 5):
             if len(self.stateQueue) >= 1:
-                self.state = self.stateQueue.pop()
-
+                self.state = self.stateQueue.pop(0)
         
         if (self.state == STATE_ROTATE) and self._rotationTransition():
-            #remove this 
-            self.stateQueue.append(STATE_STRAIGHT)
             self.IDEL_stateCounter = 0
             self.state = STATE_IDLE
                     
-        
-        
         # Outputs for the States:
         refSignals = LeftRightFloat32()
         
-        
         if self.state == STATE_ROTATE:
-            # TODO Calculate if left or right rotations 
-            refSignals.left     = self.rotationSpeed
-            refSignals.right    = -self.rotationSpeed
+            refSignals.left     = - self.rotateMultiplier * self.rotationSpeed
+            refSignals.right    = self.rotateMultiplier * self.rotationSpeed
         
         elif self.state == STATE_STRAIGHT:
             #? Maybe add a ramp function 
