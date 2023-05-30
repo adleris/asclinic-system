@@ -20,5 +20,23 @@
 			output = "screen"
 			type   = "i2c_for_motors"
 		/>
+        <node
+            pkg     = "asclinic_pkg"
+            name    = "kalman_filter"
+            output  = "screen"
+            type    = "kalman_filter"
+        />
+        <node
+            pkg     = "asclinic_pkg"
+            name    = "wheel_odometry"
+            output  = "screen"
+            type    = "wheel_odometry"
+        />
+        <node
+            pkg     = "asclinic_pkg"
+            name    = "motion_controller"
+            output  = "screen"
+            type    = "motion_controller"
+        />
     </group>
 </launch>
