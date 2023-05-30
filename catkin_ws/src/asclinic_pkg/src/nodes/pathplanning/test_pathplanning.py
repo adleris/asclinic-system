@@ -52,8 +52,15 @@ edges = node_planning.load_edges()
 
 graph = Graph(verts, edges)
 
-path = graph.dijkstra(7, 40)
+# TEST_SET = [ [7,40], [1,2], [1,3], [1,4] ]
+# TEST_SET = ([[1,i] for i in range(5, 20)])
 
-im = visualise_path.ImageManager('room-map.png')
+TEST_SET = [(1,17), (17, 16), (0,1), (1,0)]
 
-im.new_image([verts[7].x, verts[7].y], [verts[40].x, verts[40].y], path)
+for start, end in TEST_SET:
+
+    path = graph.dijkstra(start, end)
+
+    im = visualise_path.ImageManager('room-map.png')
+
+    im.new_image([verts[start].x, verts[start].y], [verts[end].x, verts[end].y], path)

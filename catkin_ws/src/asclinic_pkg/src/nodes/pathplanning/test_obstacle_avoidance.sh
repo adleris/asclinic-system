@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function prompt() {
     echo "$1"
@@ -13,7 +13,7 @@ prompt "Place the robot in an open space"
 
 prompt "Start the obstacle avoidance launch script, and in a separate terminal run:
 
-    rostopic echo /asc/path/obstacle_avoidance/detection"
+    rostopic echo /asc/obstacle_avoidance/detection"
 
 # set robot's initial position to (x,y) = (1,1)
 rostopic pub --once /asc/control/curr_pose geometry_msgs/Pose '{position:  {x: 1.0, y: 1.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}'
