@@ -14,6 +14,8 @@ NAME_SPACE   = "control"
 STATE_IDLE      = "IDLE"
 STATE_ROTATE    = "ROTATE"
 STATE_STRAIGHT  = "STRAIGHT"
+ROTATE_LEFT     = 1
+ROTATE_RIGHT    = -1
 
 class motion_controller():
     def __init__(self):
@@ -64,21 +66,20 @@ class motion_controller():
 
         # This is used to calculate which way to rotate
         # this is for phi in [0, pi]
-        if self.current_pose.phi >= 0:
-            if self.current_pose.phi - pi < self.goal_pose.phi:
-                # rotate right
-                self.rotateMultiplier = -1
+
+        if self.current_pose.phi >= 0.0:
+            # Catch for [0, pi] as current angle
+            if (self.current_pose.phi <= self.goal_pose.phi) or (self.current_pose.phi - pi >= self.goal_pose.phi):
+                self.rotateMultiplier = ROTATE_LEFT
             else:
-                # rotate left
-                self.rotateMultiplier = 1
-        # this is for phi in [0, -pi)
+                self.rotateMultiplier = ROTATE_RIGHT
         else:
-            if self.current_pose.phi + pi > self.goal_pose.phi:
-                # rotate left
-                self.rotateMultiplier = 1
+            # Catch for (-pi, 0] as current angle
+            if (self.current_pose.phi >= self.goal_pose.phi) or (self.current_pose.phi + pi <= self.goal_pose.phi):
+                self.rotateMultiplier = ROTATE_RIGHT
             else:
-                # rotate right
-                self.rotateMultiplier = -1
+                self.rotateMultiplier = ROTATE_LEFT
+
     def setEnableDrive(self, event):
         self.enableDrive = event.data
 
@@ -130,8 +131,8 @@ class motion_controller():
         refSignals = LeftRightFloat32()
         
         if self.state == STATE_ROTATE:
-            refSignals.left     = - self.rotateMultiplier * self.rotationSpeed
-            refSignals.right    = self.rotateMultiplier * self.rotationSpeed
+            refSignals.left     =   -self.rotateMultiplier * self.rotationSpeed
+            refSignals.right    =    self.rotateMultiplier * self.rotationSpeed
         
         elif self.state == STATE_STRAIGHT:
             #? Maybe add a ramp function 
@@ -150,7 +151,11 @@ class motion_controller():
         self.RefPublisher.publish(refSignals)
 
 if __name__ == "__main__":
-
-    rospy.init_node(NODE_NAME)
-    controller = motion_controller()
-    rospy.spin()
+    try:
+        rospy.init_node(NODE_NAME)
+        controller = motion_controller()
+        rospy.spin()
+    except KeyboardInterrupt:
+        refSignals = LeftRightFloat32(0, 0)
+        controller.RefPublisher.publish(refSignals)
+        exit()
