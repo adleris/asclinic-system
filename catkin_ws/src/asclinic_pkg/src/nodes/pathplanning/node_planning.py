@@ -70,8 +70,8 @@ def load_coords(as_objects: bool = True) -> list[Vertex]:
     # convert pixel values into xy coordinates (expressed in metres)
     vertex_coords: list[tuple[int, int]] = [(0,0) for n in range(len(nodes))]
     for n in range(len(nodes)):
-        vertex_coords[n] = (nodes[n][0] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 
-                            nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100)
+        vertex_coords[n] = (round(nodes[n][0] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2), 
+                            round(nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2))
 
     
     if as_objects:
@@ -186,9 +186,9 @@ def load_edges(as_objects:bool = True) -> list[Edge]:
         [29, 37, 1],
         [29, 38, 1],
         # from 30
-        [30, 28, 1],
         [30, 25, 1],
         [30, 37, 1],
+        [30, 38, 1],
         # from 31
         [31, 32, 1],
         # from 32
