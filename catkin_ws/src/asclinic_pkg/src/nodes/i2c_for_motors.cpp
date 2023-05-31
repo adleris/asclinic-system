@@ -48,10 +48,10 @@ const char * m_i2c_device_name = "/dev/i2c-1";
 I2C_Driver m_i2c_driver (m_i2c_device_name);
 
 // > For the Pololu Simple Motor Controller (SMC) driver
-const uint8_t m_pololu_smc_address_left = 13;
+const uint8_t m_pololu_smc_address_left = 14;
 Pololu_SMC_G2 m_pololu_smc_left (&m_i2c_driver, m_pololu_smc_address_left);
 
-const uint8_t m_pololu_smc_address_right = 14;
+const uint8_t m_pololu_smc_address_right = 13;
 Pololu_SMC_G2 m_pololu_smc_right (&m_i2c_driver, m_pololu_smc_address_right);
 
 // > Publisher for the current duty cycle

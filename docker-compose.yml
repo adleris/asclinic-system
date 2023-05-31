@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  ros-runner:
+    image: ros-image
+    command: bash
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    working_dir: /root/asclinic
+    volumes:
+      - ./:/root/asclinic

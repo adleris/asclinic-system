@@ -1,0 +1,67 @@
+<launch>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
+     <arg name="port" value="9090"/>
+  </include>
+
+  	<!-- START A GROUP WITH A NAMESPACE -->
+	<group ns="asc">
+
+		<!-- LAUNCH A "Aruco Capture" NODE -->
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "main_node"
+			output = "screen"
+			type   = "main_node.py"
+		/>
+
+        <node
+			pkg    = "asclinic_pkg"
+			name   = "web_server"
+			output = "screen"
+			type   = "start_web_server.py"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "camera_servo_control"
+			output = "screen"
+			type   = "camera_servo_control.py"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "i2c_for_servos"
+			output = "screen"
+			type   = "i2c_for_servos"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "camera_pose_estimation"
+			output = "screen"
+			type   = "camera_pose_estimation.py"
+		/>
+
+
+
+	</group>
+
+	<!-- ########### PATHPLANNING SECTION ########### -->
+
+	<!-- main pathplanner node -->
+	<node
+	pkg    = "asclinic_pkg"
+	name   = "pathplanner"
+	output = "screen"
+	type   = "pathplanner.py"
+	/>
+
+	<!-- Convert PoseFloat32 to Pose -->
+	<node 
+	pkg    = "asclinic_pkg"
+	name   = "pose_converter"
+	output = "screen"
+	type   = "pose_converter.py"
+	/>
+	
+</launch>

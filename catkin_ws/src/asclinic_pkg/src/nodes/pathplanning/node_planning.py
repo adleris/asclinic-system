@@ -8,7 +8,7 @@ This file contains the exports for:
 
 from dijkstra import Edge, Vertex
 
-def load_coords(as_objects: bool = True):
+def load_coords(as_objects: bool = True) -> list[Vertex]:
     """Load in coordinates of path planning vertices
 
     The vertices are returned in x, y coordinates, following the coordinate scheme as outlined elsewhere
@@ -21,6 +21,8 @@ def load_coords(as_objects: bool = True):
 
     # for 'room_map_node_planning.jpeg'
     NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS = 0.7628 # cm / pixel
+
+    ROOM_MAP_MAX_Y = 10 # metres
 
     # positions of the nodes in PIXELS as given by the file 'room_map_node_planning.jpeg'
     nodes =[
@@ -70,8 +72,8 @@ def load_coords(as_objects: bool = True):
     # convert pixel values into xy coordinates (expressed in metres)
     vertex_coords: list[tuple[int, int]] = [(0,0) for n in range(len(nodes))]
     for n in range(len(nodes)):
-        vertex_coords[n] = (nodes[n][0] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 
-                            nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100)
+        vertex_coords[n] = (round(nodes[n][0] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2), 
+                            round(ROOM_MAP_MAX_Y - nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2))
 
     
     if as_objects:
@@ -79,7 +81,7 @@ def load_coords(as_objects: bool = True):
     return vertex_coords
 
 
-def load_edges(as_objects:bool = True):
+def load_edges(as_objects:bool = True) -> list[Edge]:
     """
     Load in pre-planned ege associations for th node map that will be returned
     by load_coords.
@@ -186,9 +188,9 @@ def load_edges(as_objects:bool = True):
         [29, 37, 1],
         [29, 38, 1],
         # from 30
-        [30, 28, 1],
         [30, 25, 1],
         [30, 37, 1],
+        [30, 38, 1],
         # from 31
         [31, 32, 1],
         # from 32
@@ -216,8 +218,8 @@ def load_edges(as_objects:bool = True):
     return edges
 
 
-def __coord_list_to_Vertex(verts: list[tuple[int, int]]):
+def __coord_list_to_Vertex(verts: list[tuple[int, int]]) -> list[Vertex]:
     return [Vertex(v[0], v[1]) for v in verts]
 
-def __edge_list_to_Edges(edges: list[list[int, int, float]]):
+def __edge_list_to_Edges(edges: list[list[int, int, float]]) -> list[Edge]:
     return [Edge(e[0], e[1], e[2]) for e in edges]

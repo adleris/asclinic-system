@@ -127,6 +127,16 @@ class Graph():
                         self._update_heap(unseen_verts, edge.end, distances[edge.end])
 
 
+                elif edge.end == next_vert.id:
+                    # see if this edge is unseen, and gives a shorter path to end
+                    if self._vertex_id_is_in_list(edge.start, unseen_verts) and distances[edge.end] + edge.weight < distances[edge.start]:
+                        distances[edge.start] = distances[edge.end] + edge.weight
+                        prev[edge.start] = edge.end
+
+                        # update unseen_verts with the new distance
+                        self._update_heap(unseen_verts, edge.start, distances[edge.start])
+
+
         print(distances)
         print(prev)
 

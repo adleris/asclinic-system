@@ -16,26 +16,31 @@ hold on
 % planned trajectory
 x = zeros(1, length(t) * length(T));
 
-% path info
-path_idx = 2;
-curr_pose = path(1);
-next_pose = path(path_idx);
+% test different parameters for how close we get to the final pose
+for c = [.95, .98, .99, .999, .9999, .99999]
 
-for T_step = T
-    this_t = t + T_step;
-    x(T_step+1:T_step+ + length(t)) = sigmoid(this_t, curr_pose, next_pose);
-
-    plot(this_t, x(T_step+1:T_step+ + length(t)), 'b');
-
-    x_step_reference = next_pose * ones(1, length(this_t));
-    x_step_reference(1) = curr_pose; % draw line from last pose
-    plot(this_t, x_step_reference, 'r');
-    
-
-    % update x path info
-    path_idx = path_idx + 1;
-    curr_pose = next_pose;
+    % path info
+    path_idx = 2;
+    curr_pose = path(1);
     next_pose = path(path_idx);
+    
+    for T_step = T
+        this_t = t + T_step;
+        x(T_step+1:T_step+ + length(t)) = sigmoid(this_t, curr_pose, next_pose, c);
+    
+        plot(this_t, x(T_step+1:T_step + length(t)), 'b');
+    
+        x_step_reference = next_pose * ones(1, length(this_t));
+        x_step_reference(1) = curr_pose; % draw line from last pose
+        plot(this_t, x_step_reference, 'r');
+        
+    
+        % update x path info
+        path_idx = path_idx + 1;
+        curr_pose = next_pose;
+        next_pose = path(path_idx);
+    end
+
 end
 
 xlabel('time (s)');
