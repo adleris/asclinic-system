@@ -43,7 +43,7 @@ class MainNode:
 
         # Setup Publishers
         self.pub_main_state          = rospy.Publisher("/asc"+"/main_state", String, queue_size=10)
-        self.pub_global_target       = rospy.Publisher("/asc"+"/global_target", Point, queue_size=10)
+        self.pub_global_target       = rospy.Publisher("/main"+"/global_target", Point, queue_size=10)
         self.pub_enable_drive        = rospy.Publisher("/asc"+"/enable_drive", Bool, queue_size=10)
         self.pub_enable_photo        = rospy.Publisher("/asc"+"/enable_photo", Bool, queue_size=10)
         
@@ -53,7 +53,7 @@ class MainNode:
 
         # Setup Subscribers
         rospy.Subscriber("/asc"+"/system_start", Bool, self.callbackSystemStart)
-        rospy.Subscriber("/asc"+"/at_global_target", Bool, self.callbackAtGlobalTarget)
+        rospy.Subscriber("/planner"+"/at_global_target", Bool, self.callbackAtGlobalTarget)
         rospy.Subscriber("/asc"+"/photo_taken", Bool, self.callbackPhotoTaken)
         rospy.Subscriber("/asc"+"/emergency", Bool, self.callbackEmergency)
         
@@ -69,7 +69,7 @@ class MainNode:
         self.f_system_start = event.data
         
     def callbackAtGlobalTarget(self, event):
-        rospy.loginfo("[MainNode] /asc/at_global_target received: " + str(event.data))
+        rospy.loginfo("[MainNode] /planner/at_global_target received: " + str(event.data))
         self.f_at_global_target = event.data
 
     def callbackPhotoTaken(self, event):
