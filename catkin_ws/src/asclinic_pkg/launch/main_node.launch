@@ -45,4 +45,23 @@
 
 
 	</group>
+
+	<!-- ########### PATHPLANNING SECTION ########### -->
+
+	<!-- main pathplanner node -->
+	<node
+	pkg    = "asclinic_pkg"
+	name   = "pathplanner"
+	output = "screen"
+	type   = "pathplanner.py"
+	/>
+
+	<!-- Convert PoseFloat32 to Pose -->
+	<node 
+	pkg    = "asclinic_pkg"
+	name   = "pose_converter"
+	output = "screen"
+	type   = "pose_converter.py"
+	/>
+	
 </launch>
