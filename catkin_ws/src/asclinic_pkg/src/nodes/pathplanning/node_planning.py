@@ -22,6 +22,8 @@ def load_coords(as_objects: bool = True) -> list[Vertex]:
     # for 'room_map_node_planning.jpeg'
     NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS = 0.7628 # cm / pixel
 
+    ROOM_MAP_MAX_Y = 10 # metres
+
     # positions of the nodes in PIXELS as given by the file 'room_map_node_planning.jpeg'
     nodes =[
         [135, 100],
@@ -71,7 +73,7 @@ def load_coords(as_objects: bool = True) -> list[Vertex]:
     vertex_coords: list[tuple[int, int]] = [(0,0) for n in range(len(nodes))]
     for n in range(len(nodes)):
         vertex_coords[n] = (round(nodes[n][0] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2), 
-                            round(nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2))
+                            round(ROOM_MAP_MAX_Y - nodes[n][1] * NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS /100, 2))
 
     
     if as_objects:
