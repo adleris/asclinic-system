@@ -72,7 +72,7 @@ class PathPlanner():
         NOTE: Assumes that we are at start.
         """
 
-        rospy.loginfo("Calculating path from " + str(start) + " to " + str(end) + ": " + str(self.path))
+        rospy.loginfo(f"\033[33mCalculating path from {start} to {end}\033[0m")
 
         self.path = self.graph.dijkstra(start, end)
         #TODO possible handling here for no path found
@@ -84,7 +84,7 @@ class PathPlanner():
         """
         self.path_idx += 1
         if self.path_idx >= len(self.path):
-            rospy.loginfo("Reached the global target!")
+            rospy.loginfo("\033[32mReached the global target!\033[0m")
             self.at_global_target_pub.publish(True)
             return
 
@@ -92,7 +92,7 @@ class PathPlanner():
         next_point = Point(next_path_point[0], next_path_point[1], 0)
         self.local_target_pub.publish(next_point)
 
-        rospy.loginfo("Next local target: (id:" + str(next_path_point) +"):\n" + str(next_point))
+        rospy.loginfo(f"\033[33mNext local target: {self._vertex_id_from_tuple(next_path_point)} @ {next_path_point}\033[0m")
 
     def received_curr_pose(self, msg: Pose) -> None:
         """
@@ -102,7 +102,7 @@ class PathPlanner():
         """
         self.curr_pose = msg
 
-        rospy.loginfo("next pose received:\n" + str(msg))
+        rospy.loginfo(f"next pose received: ({msg.position.x}, {msg.position.y})")
 
         # check if we had arrived at the next local vertex and should 
         # publish the next segment of the path
@@ -140,9 +140,11 @@ class PathPlanner():
         if len(self.path) == 0:
             current_vertex_id : int = self._vertex_id_from_point(HARDCODED_START_POINT) # << TODO should be curr_pose?
         else:
-            current_vertex_id : int = self.path[self.path_idx]
+            # use the last point of our path (= previous global target) as
+            # current position to feed into dijkstra
+            current_vertex_id : int = self._vertex_id_from_tuple(self.path[-1])
 
-        print("\033[33mabout to recalculate path from {} to {}\033[0m".format(current_vertex_id, self.global_target_id))
+        rospy.logdebug("\033[33mabout to recalculate path from {} to {}\033[0m".format(current_vertex_id, self.global_target_id))
         self._recalculate_path(current_vertex_id, self.global_target_id)
 
         self.publish_next_local_target()
@@ -188,6 +190,15 @@ class PathPlanner():
         rospy.logerr("Could not find vertex with coords:\n" + str(point))
         raise(VertexNotFoundException(point.x, point.y))
         return 0
+
+    def _vertex_id_from_tuple(self, coord : Tuple[float, float]) -> int:
+        """
+        Look up a vertex id in the vertex list based on tuple coordinates (as
+        used in self.path) and return the ID.
+
+        Returns ID of the vertex being looked up 
+        """
+        return self._vertex_id_from_point(self._point_from_vertex_tuple(coord))
 
     @staticmethod
     def _point_from_vertex_tuple(coord: tuple[float, float]) -> Point:
