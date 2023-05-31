@@ -20,7 +20,7 @@ from utilities import _mark_unused
 
 NODE_NAME = "planner"
 
-HARDCODED_START_POINT = Point(5.49216, 0.541588, 0)
+HARDCODED_START_POINT = Point(5.49, 0.54, 0)
 HARDCODED_START_POSE  = Pose(HARDCODED_START_POINT, Quaternion(0,0,0,1))
 AT_VERTEX_DISTANCE = 0.1 # metres
 
