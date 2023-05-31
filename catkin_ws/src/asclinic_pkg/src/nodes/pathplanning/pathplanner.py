@@ -12,15 +12,15 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 
 from dijkstra import Graph, Vertex, Edge
 import node_planning
-from obstacle_avoidance import ObstacleAvoidance, point_distance
+from obstacle_avoidance import ObstacleAvoidance
 #from visualise_path import PathVisualiser, ImageManager
-from utilities import _mark_unused
+from utilities import _mark_unused, point_distance
 
 # send a global target at the start
 
 NODE_NAME = "planner"
 
-HARDCODED_START_POINT = Point(5.49, 0.54, 0)
+HARDCODED_START_POINT = Point(4.55, 2.25, 0)
 HARDCODED_START_POSE  = Pose(HARDCODED_START_POINT, Quaternion(0,0,0,1))
 AT_VERTEX_DISTANCE = 0.1 # metres
 
@@ -41,7 +41,7 @@ class PathPlanner():
 
         # data stores for current state
         # for the first case of the problem, always start at a given location (node id 2 here)
-        self.curr_pose : Pose = HARDCODED_START_POSE
+        self.curr_pose : Pose = None
         self.global_target : Point = None    
         ##### TODO: should this be a vertex? # I think point is fine, global target can import the coordinate list
         self.global_target_id : int = -1
@@ -125,7 +125,7 @@ class PathPlanner():
         rospy.loginfo("Received new global target ({}, {})".format(msg.x, msg.y))
 
         try:
-            self.global_target_id : int = self._vertex_id_from_point(self.global_target)
+            self.global_target_id : int = self._vertex_id_from_point(self.global_target, exact=True)
         except VertexNotFoundException:
             # couldn't find a vertex at those coordinates. Do nothing.
             rospy.logerr("Could not lookup global target!")
@@ -138,7 +138,8 @@ class PathPlanner():
         #    we were at that node. Controller will see some large error signals in this case, but it should work as a first pass.
         # 4. Drive around until we localise by a marker, then add a an edge to the nearest vertex (and assume we can navigate to it!)
         if len(self.path) == 0:
-            current_vertex_id : int = self._vertex_id_from_point(HARDCODED_START_POINT) # << TODO should be curr_pose?
+            current_vertex_id : int = self._vertex_id_from_point(self.curr_pose, exact=False)
+
         else:
             # use the last point of our path (= previous global target) as
             # current position to feed into dijkstra
@@ -175,30 +176,43 @@ class PathPlanner():
         # recalculate the full path from this new point
         self._recalculate_path(new_vert.id, self.global_target_id)
 
-    def _vertex_id_from_point(self, point: Point) -> int:
+    def _vertex_id_from_point(self, point: Point, exact: bool = False) -> int:
         """
-        Look up a vertex id in the vertex list based on its coordinates and return the ID
+        Look up a vertex id in the vertex list based on its coordinates and return the ID.
 
-        :param point: 
-        :return id: ID of the vertex being looked up 
+        Point: The point to search for 
+        Returns: ID of the vertex being looked up 
+
+        Exact: True: Searches for a vertex exactly matching point (faster)
+        Exact: False: Returns nearest vertex to point
         """
-        for vertex in self.verts:
-            # floating point equality is no good, but these should be generated form the same source
-            if vertex.x == point.x and vertex.y == point.y:
-                return vertex.id
+        if exact:
+            for vertex in self.verts:
+                # floating point equality is no good, but these should be generated form the same source
+                if vertex.x == point.x and vertex.y == point.y:
+                    return vertex.id
 
-        rospy.logerr("Could not find vertex with coords:\n" + str(point))
-        raise(VertexNotFoundException(point.x, point.y))
-        return 0
+            rospy.logerr("Could not find vertex with coords:\n" + str(point))
+            raise(VertexNotFoundException(point.x, point.y))
+            return 0
+        else:
+            closest_id = -1
+            min_dist = 10000000
+            for vertex in self.verts:
+                dist = point_distance(point, self._point_from_vertex_tuple(vertex))
+                if dist < min_dist:
+                    closest_id = vertex.id
+                    min_dist = dist
+            return closest_id
 
-    def _vertex_id_from_tuple(self, coord : Tuple[float, float]) -> int:
+    def _vertex_id_from_tuple(self, coord : Tuple[float, float], exact: bool = False) -> int:
         """
         Look up a vertex id in the vertex list based on tuple coordinates (as
         used in self.path) and return the ID.
 
         Returns ID of the vertex being looked up 
         """
-        return self._vertex_id_from_point(self._point_from_vertex_tuple(coord))
+        return self._vertex_id_from_point(self._point_from_vertex_tuple(coord), exact=exact)
 
     @staticmethod
     def _point_from_vertex_tuple(coord: tuple[float, float]) -> Point:
