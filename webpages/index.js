@@ -115,13 +115,28 @@ refreshBtn.addEventListener("click", clearConsole);
 // Implement console feature
 const consoleElement = document.getElementById("console");
 const clearConsoleBtn = document.getElementById("clear-console-btn");
+const consoleColourOption = document.getElementById("colour-option");
+const consoleTimeOption = document.getElementById("time-option");
 
 // Define a function to add a new line to the console element
-function addLineToConsole(text) {
+function addLineToConsole(heading, content, useColour) {
   // Create a new paragraph element with the specified text
   const newLine = document.createElement("div");
-  newLine.innerText = text;
+  // Create span elements for preamble and content
+  const headingSpan = document.createElement("span");
+  const contentSpan = document.createElement("span");
+  headingSpan.innerText = heading;
+  contentSpan.innerText = content;
+
+  if (useColour){
+      headingSpan.style.color = '#FF0000';
+  }
+
   newLine.style     = "padding-left: 10px"
+
+  // Append the spans to the new line element
+  newLine.appendChild(headingSpan);
+  newLine.appendChild(contentSpan);
 
   // Add the new paragraph element to the console element
   consoleElement.appendChild(newLine);
@@ -155,11 +170,23 @@ function addAscToConsole(topicList){
             messageType : topicList["types"][i]
         });
         listenerArray[n].subscribe(function(message) {
-        //console.log('Received message on ' + listener.name + ': ' + message.data);
+            //console.log('Received message on ' + listener.name + ': ' + message.data);
             const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const showTime = consoleTimeOption.checked;
+            const useColour = consoleColourOption.checked;
+            let timeString;
+
+            if (showTime){
+                timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' | ';
+            } else {
+                timeString = '';
+            }
+
+            let header = `${timeString}[${this.name}] `;
+            let messageString = `${JSON.stringify(message)}`;
+
             if (toggleValue && filteredTopicList.includes(this.name)) {
-                addLineToConsole(`${timeString} | [${this.name}] ${JSON.stringify(message)}`)
+                addLineToConsole(header, messageString, useColour);
             }
 
         });
