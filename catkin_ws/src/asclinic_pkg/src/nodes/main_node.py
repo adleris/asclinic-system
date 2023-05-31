@@ -13,7 +13,8 @@ from map_data import MapData
 # ---------------------------------------------------------------------------------
 # PARAMETER DEFINITION
 
-MAIN_NODE_FREQ = 5 # Hz
+MAIN_NODE_FREQ  = 5 # Hz
+INITIAL_NODE    = 0 # node index
 
 # ---------------------------------------------------------------------------------
 
@@ -38,8 +39,9 @@ class MainNode:
         self.f_emergency_idle   = False
 
         # Global Target
-        self.map_data = MapData()
-        self.global_target = self.map_data.global_target_positions["0"]
+        self.map_data               = MapData()
+        self.global_target_index    = INITIAL_NODE
+        self.global_target          = self.map_data.get_point(self.global_target_index)
 
         # Setup Publishers
         self.pub_main_state          = rospy.Publisher("/asc"+"/main_state", String, queue_size=10)
@@ -49,6 +51,7 @@ class MainNode:
         
         # Initialise Publishers
         self.pub_main_state.publish(self.s_main_state)
+        self.pub_enable_drive.publish(False)
         # self.pub_global_target.publish(self.global_target)
 
         # Setup Subscribers
@@ -88,7 +91,7 @@ class MainNode:
             rospy.loginfo("[MainNode] Setting main_state to 'Idle'")
             self.s_main_state       = "Idle"
             self.pub_main_state.publish(self.s_main_state)
-            self.pub_enable_drive(False)
+            self.pub_enable_drive.publish(False)
 
             self.f_system_start     = False
             self.f_at_global_target = False
@@ -97,7 +100,7 @@ class MainNode:
         
         if (self.s_main_state == "Idle" and self.f_system_start == True):
             self.f_system_start = False
-            transitionMainStateToDrive()
+            self.transitionMainStateToDrive()
 
         if (self.s_main_state == "Drive" and self.f_at_global_target == True):
             self.f_at_global_target = False
@@ -106,29 +109,33 @@ class MainNode:
             self.s_main_state = "Taking_Photo"
             self.pub_main_state.publish(self.s_main_state)
             # Disable Driving
-            self.pub_enable_drive(False)
+            self.pub_enable_drive.publish(False)
             # Enable "Taking" a photo
-            self.pub_enable_photo(True)
+            self.pub_enable_photo.publish(True)
 
         if (self.s_main_state == "Taking_Photo" and self.f_photo_taken == True):
             self.f_photo_taken = False
-            transitionMainStateToDrive()
+            # Publish new global target
+            self.updateGlobalTarget()
+            self.transitionMainStateToDrive()
             
 
-
-    def transitionMainStateToDrive():
+    def transitionMainStateToDrive(self):
         # Update Main State
         rospy.loginfo("[MainNode] Setting main_state to 'Drive'")
         self.s_main_state = "Drive"
         self.pub_main_state.publish(self.s_main_state)
         # Enable Driving
-        self.pub_enable_drive(True)
-        # Publish new global target
-        #TODO Add funcationality to update global target position
-        self.global_target = self.map_data.global_target_positions["0"]
-        self.pub_global_target(self.global_target)
+        self.pub_enable_drive.publish(True)
         # Disable "Taking" a photo
-        self.pub_enable_photo(False)
+        self.pub_enable_photo.publish(False)
+    
+    def updateGlobalTarget(self):
+        self.global_target_index += 1
+        if self.global_target_index >= len(self.map_data.global_target_positions):
+            self.global_target_index = 0
+        self.global_target = self.map_data.get_point(self.global_target_index)
+        self.pub_global_target.publish(self.global_target)
 
 
 if __name__ == '__main__':

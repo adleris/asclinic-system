@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from geometry_msgs.msg import Point
 
 class MapData:
 
@@ -12,13 +13,18 @@ class MapData:
             "19" :   [6.82,    9.88,   -135]
         }
 
-        self.global_target_positions = {
-        # Plant position: [x, y]
+        self.global_target_positions =[
+        # Plant position: [x, y, z]
+        # z not used, should be set to zero
         # For now, based on Alex's node positions
-            "0" : [1.03, 0.76],
-            "1" : [2.52, 4.58],
-            "2" : [8.47, 5.49]
-        }
+            [1.03, 0.76],
+            [2.52, 4.58],
+            [8.47, 5.49]
+        ]
+
+    def get_point(self, index):
+        point = Point(self.global_target_positions[index][0], self.global_target_positions[index][1],0)
+        return point
 
     def translation_matrix(self, index):
         x = self.aruco_marker_pose[index][0]
