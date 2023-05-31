@@ -10,10 +10,10 @@ NODE_NAME = "kalman_filter"
 class kalman_filter:
     def __init__(self):
         # TODO could make an initial pos topic that is sub to
-        self.currPose = PoseFloat32(0, 0, 0)
+        self.currPose = PoseFloat32(4.55, 2.25, 0)
 
         # ROS subs and publihing set up
-        self.pose_publisher = rospy.Publisher(f"{NAMESPACE}/sys_pose", PoseFloat32, queue_size=1)
+        self.pose_publisher = rospy.Publisher(f"{NAMESPACE}/curr_pose", PoseFloat32, queue_size=1)
         rospy.Subscriber(f"{NAMESPACE}/change_to_pose", PoseFloat32, self.update_pose, queue_size=1)
 
     def update_pose(self, event):
