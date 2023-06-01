@@ -126,8 +126,8 @@ class motion_controller():
             self.state = STATE_IDLE
         
         # This could just output zero i.e. needs to be true to output a drive signal
-        if not self.enableDrive:
-            self.state = STATE_IDLE
+        # if not self.enableDrive:
+        #     self.state = STATE_IDLE
                     
         # Outputs for the States:
         refSignals = LeftRightFloat32()
@@ -136,7 +136,7 @@ class motion_controller():
             refSignals.left     =   -self.rotateMultiplier * self.rotationSpeed
             refSignals.right    =    self.rotateMultiplier * self.rotationSpeed
         
-        elif self.state == STATE_STRAIGHT:
+        elif self.state == STATE_STRAIGHT and self.enableDrive:
             #? Maybe add a ramp function 
             #? also think about breaking halfway 
             refSignals.left     = self.straightLineSpeed
