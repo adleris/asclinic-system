@@ -19,7 +19,7 @@ class wheel_odometry:
         self.currPhi = 0.0
         self.change_pos_publisher = rospy.Publisher(f"{NAMESPACE}/change_to_pose", PoseFloat32,  queue_size=1)
         rospy.Subscriber(f"{NAMESPACE}/wheel_angular_speeds", LeftRightFloat32, self.convert_wheel_speeds_to_pose_differences, queue_size=1)
-        rospy.Subscriber(f"{NAMESPACE}/sys_pose", PoseFloat32, self.get_current_pose, queue_size=1)
+        rospy.Subscriber(f"{NAMESPACE}/curr_pose", PoseFloat32, self.get_current_pose, queue_size=1)
 
     def convert_wheel_speeds_to_pose_differences(self, event):
         
