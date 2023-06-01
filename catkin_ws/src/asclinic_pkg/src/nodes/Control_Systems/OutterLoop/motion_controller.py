@@ -40,7 +40,7 @@ class motion_controller():
         self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
         rospy.Subscriber(f"{NAME_SPACE}/sys_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("planner/next_target", Point, self.add_to_location_queue, queue_size=1)
-        rospy.Subscriber("/asc/enable_drive", Bool, self)
+        rospy.Subscriber("/asc/enable_drive", Bool, self.setEnableDrive)
         
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
@@ -81,7 +81,9 @@ class motion_controller():
                 self.rotateMultiplier = ROTATE_LEFT
 
     def setEnableDrive(self, event):
+        rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
         self.enableDrive = event.data
+        print(self.enableDrive)
 
     def _rotationTransition(self):
         # This has all logic for if the system should get out of the rotation state
@@ -111,7 +113,6 @@ class motion_controller():
 
 
     def control_main_loop(self, event):
-        rospy.loginfo(f"Current State: {self.state}")
         self.current_pose = event
         
         # Transitions for States:
@@ -120,6 +121,7 @@ class motion_controller():
                 self.state = self.stateQueue.pop(0)
         
         if (self.state == STATE_ROTATE) and self._rotationTransition():
+            rospy.loginfo(f"Current State: {self.state}")
             self.IDEL_stateCounter = 0
             self.state = STATE_IDLE
         

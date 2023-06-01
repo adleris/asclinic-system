@@ -29,7 +29,7 @@ class kalman_filter:
             self.currPose.phi -= 2 * pi
 
         # Set up and publishing pose
-        rospy.loginfo(f"x: {self.currPose.x} y: {self.currPose.y} phi: {self.currPose.phi}")
+        # rospy.loginfo(f"x: {self.currPose.x} y: {self.currPose.y} phi: {self.currPose.phi}")
         self.pose_publisher.publish(self.currPose)
 
 if __name__ == "__main__":
