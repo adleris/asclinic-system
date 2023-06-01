@@ -38,9 +38,9 @@ class motion_controller():
 
         # ros setup
         self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
-        rospy.Subscriber(f"{NAME_SPACE}/sys_pose", PoseFloat32, self.control_main_loop, queue_size=1)
-        rospy.Subscriber("planner/next_target", Point, self.add_to_location_queue, queue_size=1)
-        rospy.Subscriber("/asc/enable_drive", Bool, self.setEnableDrive)
+        rospy.Subscriber(f"{NAME_SPACE}/curr_pose", PoseFloat32, self.control_main_loop, queue_size=1)
+        rospy.Subscriber("/planner/next_target", Point, self.add_to_location_queue, queue_size=1)
+        rospy.Subscriber("/asc/enable_drive", Bool, self.setEnableDrive, queue_size=1)
         
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")

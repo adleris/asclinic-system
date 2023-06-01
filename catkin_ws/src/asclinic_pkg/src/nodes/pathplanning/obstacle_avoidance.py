@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import rospy
-import numpy as np
 
 from std_msgs.msg import Bool
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Pose, Point
 
+from utilities import point_distance
 
 class ObstacleAvoidance:
     """
@@ -96,13 +96,6 @@ class ObstacleAvoidance:
         else:
             rospy.logdebug("ignoring detection due to lock")
             return
-
-
-def point_distance(p1: Point, p2: Point):
-    """Calculates the distances between two Point objects
-    :param p1: Point 1
-    :param p2: Point 2"""
-    return np.sqrt( (p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2 )
 
 
 if __name__ == '__main__':
