@@ -48,6 +48,9 @@ class Vertex():
     def to_point(self):
         return (self.x, self.y)
 
+    def to_tuple(self) -> tuple:
+        return (self.x, self.y)
+
 
 class Edge():
     """Stores information about an edge from one node to another. Edges are
