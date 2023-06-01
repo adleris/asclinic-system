@@ -252,6 +252,10 @@ class PathPlanner():
         """
         if len(self.path) == 0:
             return False
+
+        if self.path_idx == len(self.path):
+            return
+
         target_position : Point = self._point_from_vertex_tuple(self.path[self.path_idx])
         return point_distance(self.curr_pose.position, target_position) < AT_VERTEX_DISTANCE
 
