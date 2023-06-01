@@ -17,9 +17,8 @@ class MapData:
         # Plant position: [x, y, z]
         # z not used, should be set to zero
         # For now, based on Alex's node positions
-            [4.55, 0.76],
-            [2.52, 4.58],
-            [8.47, 5.49]
+            [4.55, 2.25],
+            [4.58, 3.41]
         ]
 
     def get_point(self, index):

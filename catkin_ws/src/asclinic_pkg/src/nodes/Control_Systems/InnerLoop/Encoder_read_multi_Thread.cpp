@@ -24,10 +24,10 @@ int m_encoder_counts_for_motor_left_a = 0,
 
 std::mutex m_counting_mutex;
 
-int m_line_number_for_motor_left_channel_a = 133, 
-    m_line_number_for_motor_left_channel_b = 134,
+int m_line_number_for_motor_left_channel_a = 84, 
+    m_line_number_for_motor_left_channel_b = 130,
     m_line_number_for_motor_right_channel_a = 105,
-    m_line_number_for_motor_right_channel_b = 160;
+    m_line_number_for_motor_right_channel_b = 106;
 
 bool encoder_thread_should_count = true;
 

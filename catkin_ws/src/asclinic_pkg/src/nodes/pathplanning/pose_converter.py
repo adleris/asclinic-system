@@ -9,7 +9,7 @@ NODE_NAME = "pose_converter"
 
 class PoseConverter():
     def __init__(self):
-        rospy.Subscriber("control/curr_pose", PoseFloat32, self.received_pose)
+        rospy.Subscriber("/asc/control/curr_pose", PoseFloat32, self.received_pose)
         self.pub : rospy.Publisher = rospy.Publisher("planner/curr_pose", Pose, queue_size=10)
     
     def received_pose(self, event : PoseFloat32) -> None:
