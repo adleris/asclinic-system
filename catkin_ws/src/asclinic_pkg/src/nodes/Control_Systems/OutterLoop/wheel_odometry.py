@@ -25,7 +25,7 @@ class wheel_odometry:
         
         # needed for further calculations
         delta_s     = WHEEL_RADIUS_METERS * SAMPLE_PERIOD_SEC * (event.left + event.right) / 2
-        delta_phi   = WHEEL_RADIUS_METERS * SAMPLE_PERIOD_SEC * (-event.left + event.right) / (2 * WHEEL_BASE_METERS)
+        delta_phi   = WHEEL_RADIUS_METERS * SAMPLE_PERIOD_SEC * (-event.left + event.right) /  (WHEEL_BASE_METERS)
 
         # publising the change in pose to be published
         changeToPose = PoseFloat32()
