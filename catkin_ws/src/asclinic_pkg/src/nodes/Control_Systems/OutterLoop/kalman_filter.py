@@ -16,7 +16,7 @@ class kalman_filter:
         # ROS subs and publihing set up
         self.pose_publisher = rospy.Publisher(f"{NAMESPACE}/curr_pose", PoseFloat32, queue_size=1)
         rospy.Subscriber(f"{NAMESPACE}/change_to_pose", PoseFloat32, self.update_pose, queue_size=1)
-        rospy.Subscriber(f"initial_pose", PoseFloat32, self.update_pose, queue_size=1)
+        rospy.Subscriber(f"initial_pose", PoseFloat32, self.set_initial_pose, queue_size=1)
 
     def set_initial_pose(self, event):
         # sets the a new pose once, used for the intial pose
