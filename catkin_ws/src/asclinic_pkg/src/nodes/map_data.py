@@ -17,7 +17,7 @@ class MapData:
         # Plant position: [x, y, z]
         # z not used, should be set to zero
         # For now, based on Alex's node positions
-            [1.03, 0.76],
+            [4.55, 0.76],
             [2.52, 4.58],
             [8.47, 5.49]
         ]
