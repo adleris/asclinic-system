@@ -325,7 +325,7 @@ class ArucoDetector:
                 data_string = PoseFloat32()
                 data_string.x = x_c
                 data_string.y = y_c
-                data_string.phi = np.degrees(phi)
+                data_string.phi = phi
                 self.pose_c_pub.publish(data_string)
 
         else:
