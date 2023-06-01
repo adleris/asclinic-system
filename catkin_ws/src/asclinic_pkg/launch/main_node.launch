@@ -7,13 +7,6 @@
 	<group ns="asc">
 
 		<!-- LAUNCH A "Aruco Capture" NODE -->
-		<node
-			pkg    = "asclinic_pkg"
-			name   = "main_node"
-			output = "screen"
-			type   = "main_node.py"
-		/>
-
         <node
 			pkg    = "asclinic_pkg"
 			name   = "web_server"
@@ -82,6 +75,13 @@
 			name    = "motion_controller"
 			output  = "screen"
 			type    = "motion_controller.py"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "main_node"
+			output = "screen"
+			type   = "main_node.py"
 		/>
 
 	</group>

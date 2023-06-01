@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import rospy
+import time
 
 # Import the standard message types
 from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Pose, Point, Quaternion
+from asclinic_pkg.msg import PoseFloat32
 
 # Import numpy
 import numpy as np
@@ -15,6 +17,7 @@ from map_data import MapData
 
 MAIN_NODE_FREQ  = 5 # Hz
 INITIAL_NODE    = 0 # node index
+INITIAL_POSE    = PoseFloat32(3.55, 0.76, 0)
 
 # ---------------------------------------------------------------------------------
 
@@ -48,6 +51,7 @@ class MainNode:
         self.pub_global_target       = rospy.Publisher("/main"+"/global_target", Point, queue_size=10)
         self.pub_enable_drive        = rospy.Publisher("/asc"+"/enable_drive", Bool, queue_size=10)
         self.pub_enable_photo        = rospy.Publisher("/asc"+"/enable_photo", Bool, queue_size=10)
+        self.pub_initial_pose        = rospy.Publisher("/asc"+"/initial_pose", PoseFloat32, queue_size=10)
         
         # Initialise Publishers
         self.pub_main_state.publish(self.s_main_state)
@@ -100,7 +104,9 @@ class MainNode:
         
         if (self.s_main_state == "Idle" and self.f_system_start == True):
             self.f_system_start = False
+            self.pub_initial_pose.publish(INITIAL_POSE)
             self.transitionMainStateToDrive()
+            
 
         if (self.s_main_state == "Drive" and self.f_at_global_target == True):
             self.f_at_global_target = False
@@ -125,6 +131,8 @@ class MainNode:
         rospy.loginfo("[MainNode] Setting main_state to 'Drive'")
         self.s_main_state = "Drive"
         self.pub_main_state.publish(self.s_main_state)
+        # Publish the global target
+        self.pub_global_target.publish(self.global_target)
         # Enable Driving
         self.pub_enable_drive.publish(True)
         # Disable "Taking" a photo
@@ -135,7 +143,6 @@ class MainNode:
         if self.global_target_index >= len(self.map_data.global_target_positions):
             self.global_target_index = 0
         self.global_target = self.map_data.get_point(self.global_target_index)
-        self.pub_global_target.publish(self.global_target)
 
 
 if __name__ == '__main__':

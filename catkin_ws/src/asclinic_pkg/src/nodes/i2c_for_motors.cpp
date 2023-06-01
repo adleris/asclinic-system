@@ -74,7 +74,7 @@ ros::Publisher m_current_motor_duty_cycle_publisher;
 //
 void driveMotorsSubscriberCallback(const asclinic_pkg::LeftRightFloat32& msg)
 {
-	ROS_INFO_STREAM("[I2C FOR MOTORS] Message received with left = " << msg.left << ", right = " << msg.right);
+	//ROS_INFO_STREAM("[I2C FOR MOTORS] Message received with left = " << msg.left << ", right = " << msg.right);
 
 	// Clip the data to be in the range [-100.0,100.0]
 	// > For the left value

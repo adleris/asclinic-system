@@ -102,7 +102,7 @@ class PathPlanner():
         """
         self.curr_pose = msg
 
-        rospy.loginfo(f"next pose received: ({msg.position.x}, {msg.position.y})")
+        # rospy.loginfo(f"next pose received: ({msg.position.x}, {msg.position.y})")
 
         # check if we had arrived at the next local vertex and should 
         # publish the next segment of the path
@@ -138,7 +138,7 @@ class PathPlanner():
         #    we were at that node. Controller will see some large error signals in this case, but it should work as a first pass.
         # 4. Drive around until we localise by a marker, then add a an edge to the nearest vertex (and assume we can navigate to it!)
         if len(self.path) == 0:
-            current_vertex_id : int = self._vertex_id_from_point(self.curr_pose, exact=False)
+            current_vertex_id : int = self._vertex_id_from_point(self.curr_pose.position, exact=False)
 
         else:
             # use the last point of our path (= previous global target) as
@@ -199,7 +199,7 @@ class PathPlanner():
             closest_id = -1
             min_dist = 10000000
             for vertex in self.verts:
-                dist = point_distance(point, self._point_from_vertex_tuple(vertex))
+                dist = point_distance(point, self._point_from_vertex_tuple(vertex.to_tuple()))
                 if dist < min_dist:
                     closest_id = vertex.id
                     min_dist = dist

@@ -81,6 +81,7 @@ class motion_controller():
                 self.rotateMultiplier = ROTATE_LEFT
 
     def setEnableDrive(self, event):
+        rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
         self.enableDrive = event.data
 
     def _rotationTransition(self):
@@ -111,7 +112,6 @@ class motion_controller():
 
 
     def control_main_loop(self, event):
-        rospy.loginfo(f"Current State: {self.state}")
         self.current_pose = event
         
         # Transitions for States:
@@ -120,12 +120,13 @@ class motion_controller():
                 self.state = self.stateQueue.pop(0)
         
         if (self.state == STATE_ROTATE) and self._rotationTransition():
+            rospy.loginfo(f"Current State: {self.state}")
             self.IDEL_stateCounter = 0
             self.state = STATE_IDLE
         
         # This could just output zero i.e. needs to be true to output a drive signal
-        if not self.enableDrive:
-            self.state = STATE_IDLE
+        # if not self.enableDrive:
+        #     self.state = STATE_IDLE
                     
         # Outputs for the States:
         refSignals = LeftRightFloat32()
@@ -134,7 +135,7 @@ class motion_controller():
             refSignals.left     =   -self.rotateMultiplier * self.rotationSpeed
             refSignals.right    =    self.rotateMultiplier * self.rotationSpeed
         
-        elif self.state == STATE_STRAIGHT:
+        elif self.state == STATE_STRAIGHT and self.enableDrive:
             #? Maybe add a ramp function 
             #? also think about breaking halfway 
             refSignals.left     = self.straightLineSpeed
