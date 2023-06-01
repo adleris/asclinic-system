@@ -4,9 +4,10 @@ from geometry_msgs.msg import Point
 from std_msgs.msg import Bool
 from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import pi, atan2
+from numpy import sign
 import rospy
 
-# TODO add a re orination at some point 
+# TODO add a re orination at some point and give matt the ability to roate 180
 
 NODE_NAME    = "motion_controller"
 NAME_SPACE   = "control"
@@ -27,6 +28,8 @@ class motion_controller():
         self.straightLineSpeed = 3
         self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05 # isnt in use
+        self.posePhiTolorance = (10/180) * pi
+        self.recalculateGoal = False
         
         # state set up
         self.enableDrive = False
@@ -84,27 +87,27 @@ class motion_controller():
         rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
         self.enableDrive = event.data
 
-    def _rotationTransition(self):
+    def _rotationTransition(self, tolorance):
         # This has all logic for if the system should get out of the rotation state
         
         # This is the catch for if the goal rotation is on the range [pi, pi-tolerance]
-        if (self.goal_pose.phi > 0) and (self.goal_pose.phi > pi - self.rotationTolarance):
-            otherSideTolerence = self.rotationTolarance - (pi - self.goal_pose.phi)
+        if (self.goal_pose.phi > 0) and (self.goal_pose.phi > pi - tolorance):
+            otherSideTolerence = tolorance - (pi - self.goal_pose.phi)
 
             # catch for the cyclical nature 
             if (otherSideTolerence - pi < self.current_pose.phi):
                 return True
 
         # This is the catch for if the goal rotation is on the range (-pi, -pi+tolerance]
-        elif (self.goal_pose.phi < 0) and (self.goal_pose.phi < -pi + self.rotationTolarance):
-            otherSideTolerence = self.rotationTolarance - (pi + self.goal_pose.phi)
+        elif (self.goal_pose.phi < 0) and (self.goal_pose.phi < -pi + tolorance):
+            otherSideTolerence = tolorance - (pi + self.goal_pose.phi)
 
             # catch for the cyclical nature
             if (pi - otherSideTolerence) < self.current_pose.phi:
                 return True
         
         # This is the general catch for most cases
-        if (abs(self.current_pose.phi - self.goal_pose.phi) <= self.rotationTolarance):
+        if (abs(self.current_pose.phi - self.goal_pose.phi) <= tolorance) and (sign(self.current_pose.phi) == sign(self.goal_pose.phi)):
             return True
         
         # has yet to meet the conditions
@@ -115,18 +118,27 @@ class motion_controller():
         self.current_pose = event
         
         # Transitions for States:
+        if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 2) and self.recalculateGoal:
+            self.calc_goal_pose()
+            self.recalculateGoal = False
+
         if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 5):
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop(0)
         
-        if (self.state == STATE_ROTATE) and self._rotationTransition():
+        if (self.state == STATE_ROTATE) and self._rotationTransition(self.rotationTolarance):
             rospy.loginfo(f"Current State: {self.state}")
             self.IDEL_stateCounter = 0
             self.state = STATE_IDLE
         
-        # This could just output zero i.e. needs to be true to output a drive signal
-        # if not self.enableDrive:
-        #     self.state = STATE_IDLE
+        if (self.state == STATE_STRAIGHT) and self._rotationTransition(self.posePhiTolorance):
+            self.stateQueue = [STATE_ROTATE, STATE_STRAIGHT]
+            self.IDEL_stateCounter = 0
+            self.state = STATE_IDLE
+            self.recalculateGoal = True
+
+
+       
                     
         # Outputs for the States:
         refSignals = LeftRightFloat32()
