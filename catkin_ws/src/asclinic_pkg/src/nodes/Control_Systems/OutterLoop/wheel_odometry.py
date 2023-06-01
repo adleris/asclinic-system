@@ -9,7 +9,7 @@ NODE_NAME = "wheel_odometry"
 
 # constants in m:
 WHEEL_BASE_METERS = 0.218
-WHEEL_RADIUS_METERS = 0.144
+WHEEL_RADIUS_METERS = 0.5 * 0.144
 SAMPLE_PERIOD_SEC = 0.05
 
 class wheel_odometry:
