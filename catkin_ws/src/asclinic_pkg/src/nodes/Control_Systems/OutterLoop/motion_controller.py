@@ -83,7 +83,6 @@ class motion_controller():
     def setEnableDrive(self, event):
         rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
         self.enableDrive = event.data
-        print(self.enableDrive)
 
     def _rotationTransition(self):
         # This has all logic for if the system should get out of the rotation state
