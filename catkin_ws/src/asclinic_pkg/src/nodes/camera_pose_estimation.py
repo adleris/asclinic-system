@@ -79,26 +79,7 @@ DESIRED_CAMERA_FPS = 5
 # Size of Aruco marker
 MARKER_SIZE = 0.250
 
-# class ArucoData:
-
-#     def __init__(self):
-
-#         self.aruco_marker_pose = {
-#         # Marker ID : [x, y, phi]
-#             "7" :   [0,     0.5,      -90],
-#         }
-
-#     def translation_matrix(self, index):
-#         x = self.aruco_marker_pose[index][0]
-#         y = self.aruco_marker_pose[index][1]
-#         phi = np.radians(self.aruco_marker_pose[index][2])
-#         matrix = np.matrix([
-#             [np.cos(phi), -np.sin(phi), x],
-#             [np.sin(phi), np.cos(phi),  y],
-#             [0            , 0            ,  1]
-#         ])
-
-#         return matrix
+BLUR_THRESHOLD = 40
 
 class ArucoDetector:
 
@@ -282,9 +263,13 @@ class ArucoDetector:
                                 "tvec_x":   -tvec[0][0],
                                 "e_dist":   tvec[2][0]**2 + tvec[0][0]**2
                             }
-                    
+                
                 if pose_info == None:
                     return
+
+                if cv2.Laplacian(current_frame_gray, cv2.CV_64F).var() <= BLUR_THRESHOLD:
+                    return
+
                 # Translation matrix from marker frame to camera frame
                 phi_c = pose_info["phi_c"]
                 T_mc = np.matrix([
