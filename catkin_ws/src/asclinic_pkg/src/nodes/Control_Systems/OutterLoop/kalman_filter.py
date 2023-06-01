@@ -21,7 +21,7 @@ class kalman_filter:
     def set_initial_pose(self, event):
         # sets the a new pose once, used for the intial pose
         if not self.initial_pose_set:
-            self.curPose = event
+            self.update_pose(event)
             self.initial_pose_set = True
 
     def update_pose(self, event):
