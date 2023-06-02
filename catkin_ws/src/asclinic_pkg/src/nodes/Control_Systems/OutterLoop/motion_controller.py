@@ -15,6 +15,8 @@ NAME_SPACE   = "control"
 STATE_IDEL      = "IDEL"
 STATE_ROTATE    = "ROTATE"
 STATE_STRAIGHT  = "STRAIGHT"
+STATE_STRAIGHT_WITH_P_CONTROL = "STRAIGHT with P control"
+DRIVE_STATES = [STATE_STRAIGHT, STATE_STRAIGHT_WITH_P_CONTROL]
 ROTATE_LEFT     = 1
 ROTATE_RIGHT    = -1
 
@@ -31,6 +33,10 @@ class motion_controller():
         self.posePhiTolorance = (20/180) * pi
         self.recalculateGoal = False
         
+        # P control
+        self.pControl_K = 5
+        self.limitOfControl = 0.5
+
         # state set up
         self.enableDrive = False
         self.stateQueue = []
@@ -113,6 +119,29 @@ class motion_controller():
         # has yet to meet the conditions
         return False
 
+    def _actionWhenInPControlState(self):
+        if (self.current_pose.phi >= 0.5 * pi) and (self.goal_pose <= -0.5 * pi):
+            phiError = (self.goal_pose.phi + 2 * pi) - self.current_pose.phi
+        elif (self.current_pose.phi <= -0.5 * pi) and (self.goal_pose >= 0.5 * pi):
+            phiError = self.goal_pose.phi - (self.current_pose.phi + 2 * pi)
+        else:
+            phiError = self.goal_pose.phi - self.current_pose.phi
+        
+        if phiError > 0:
+            if (self.pControl_K * phiError > self.limitOfControl):
+                leftWheelSpeed = self.straightLineSpeed - self.limitOfControl
+            else:
+                leftWheelSpeed  = self.straightLineSpeed - (self.pControl_K * phiError > self.limitOfControl)
+            rightWheelSpeed = self.straightLineSpeed
+
+        else:
+            leftWheelSpeed  = self.straightLineSpeed 
+            if (self.pControl_K * abs(phiError) > self.limitOfControl):
+                rightWheelSpeed = self.straightLineSpeed - self.limitOfControl
+            else:
+                rightWheelSpeed = self.straightLineSpeed - self.pControl_K * abs(phiError)
+        
+        return leftWheelSpeed, rightWheelSpeed
 
     def control_main_loop(self, event):
         self.current_pose = event
@@ -123,6 +152,7 @@ class motion_controller():
             self.recalculateGoal = False
 
         if (self.state == STATE_IDEL) and (self.stateCounter >= 5):
+            self.stateCounter = 0
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop(0)
         
@@ -131,15 +161,20 @@ class motion_controller():
             self.stateCounter = 0
             self.state = STATE_IDEL
         
-        if (self.state == STATE_STRAIGHT) and self._rotationTransition(self.posePhiTolorance):
+        if (self.state ==  DRIVE_STATES) and (self.stateCounter >= 80):
+            self.state = STATE_STRAIGHT_WITH_P_CONTROL
+        
+        if (self.state in DRIVE_STATES) and (self.stateCounter % 100 == 0):
+            self.calc_goal_pose()
+
+        if (self.state in DRIVE_STATES) and self._rotationTransition(self.posePhiTolorance):
             self.stateQueue = [STATE_ROTATE, STATE_STRAIGHT]
             self.stateCounter = 0
             self.state = STATE_IDEL
             self.recalculateGoal = True
-
-
-       
-                    
+        
+        self.stateCounter += 1 
+        
         # Outputs for the States:
         refSignals = LeftRightFloat32()
         
@@ -149,17 +184,19 @@ class motion_controller():
         
         elif self.state == STATE_STRAIGHT and self.enableDrive:
             #? Maybe add a ramp function 
-            #? also think about breaking halfway 
+            #? also think about breaking halfway
             refSignals.left     = self.straightLineSpeed
             refSignals.right    = self.straightLineSpeed
+        
+        elif self.state == STATE_STRAIGHT and self.enableDrive:
+            refSignals.left, refSignals.right = self._actionWhenInPControlState()
+        
         else:
             # this is deafult for seafty 
             refSignals.left     = 0
             refSignals.right    = 0
 
-            # only incirments if in IDLE state
-            if self.state == STATE_IDEL:
-                self.stateCounter += 1
+            
 
         self.RefPublisher.publish(refSignals)
 
