@@ -12,7 +12,7 @@ import rospy
 NODE_NAME    = "motion_controller"
 NAME_SPACE   = "control"
 
-STATE_IDLE      = "IDLE"
+STATE_IDEL      = "IDEL"
 STATE_ROTATE    = "ROTATE"
 STATE_STRAIGHT  = "STRAIGHT"
 ROTATE_LEFT     = 1
@@ -28,14 +28,14 @@ class motion_controller():
         self.straightLineSpeed = 3
         self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05 # isnt in use
-        self.posePhiTolorance = (10/180) * pi
+        self.posePhiTolorance = (20/180) * pi
         self.recalculateGoal = False
         
         # state set up
         self.enableDrive = False
         self.stateQueue = []
-        self.state = STATE_IDLE
-        self.IDEL_stateCounter = 0
+        self.state = STATE_IDEL
+        self.stateCounter = 0
         
         self.goal_pose = PoseFloat32(0, 0, 0) 
 
@@ -47,8 +47,8 @@ class motion_controller():
         
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
-        self.IDEL_stateCounter = 0
-        self.state = STATE_IDLE
+        self.stateCounter = 0
+        self.state = STATE_IDEL
         refSignals = LeftRightFloat32(0,0)
         self.RefPublisher.publish(refSignals)
 
@@ -118,23 +118,23 @@ class motion_controller():
         self.current_pose = event
         
         # Transitions for States:
-        if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 2) and self.recalculateGoal:
+        if (self.state == STATE_IDEL) and (self.stateCounter >= 2) and self.recalculateGoal:
             self.calc_goal_pose()
             self.recalculateGoal = False
 
-        if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 5):
+        if (self.state == STATE_IDEL) and (self.stateCounter >= 5):
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop(0)
         
         if (self.state == STATE_ROTATE) and self._rotationTransition(self.rotationTolarance):
             rospy.loginfo(f"Current State: {self.state}")
-            self.IDEL_stateCounter = 0
-            self.state = STATE_IDLE
+            self.stateCounter = 0
+            self.state = STATE_IDEL
         
         if (self.state == STATE_STRAIGHT) and self._rotationTransition(self.posePhiTolorance):
             self.stateQueue = [STATE_ROTATE, STATE_STRAIGHT]
-            self.IDEL_stateCounter = 0
-            self.state = STATE_IDLE
+            self.stateCounter = 0
+            self.state = STATE_IDEL
             self.recalculateGoal = True
 
 
@@ -158,8 +158,8 @@ class motion_controller():
             refSignals.right    = 0
 
             # only incirments if in IDLE state
-            if self.state == STATE_IDLE:
-                self.IDEL_stateCounter += 1
+            if self.state == STATE_IDEL:
+                self.stateCounter += 1
 
         self.RefPublisher.publish(refSignals)
 
