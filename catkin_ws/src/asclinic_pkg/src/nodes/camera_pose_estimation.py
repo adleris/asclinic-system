@@ -89,6 +89,9 @@ class ArucoDetector:
 
         self.pose_c_pub = rospy.Publisher("/asc"+"/pose_camera_estimation", PoseFloat32, queue_size=10)
 
+        # Initialise a publisher for the images
+        self.image_publisher = rospy.Publisher("/asc"+"/camera_image", Image, queue_size=10)
+
         # Setup Subscriber to get camera pan pose
         rospy.Subscriber("/asc"+"/pose_camera_pan", Int32, self.adjust_pan_angle)
         self.phi_servo = 0
@@ -230,6 +233,12 @@ class ArucoDetector:
 
         # Check if the camera frame was successfully read
         if (return_flag == True):
+
+            # Publish the camera frame
+            try:
+                self.image_publisher.publish(self.cv_bridge.cv2_to_imgmsg(current_frame, "bgr8"))
+            except CvBridgeError as cv_bridge_err:
+                print(cv_bridge_err)
             # Convert the image to gray scale
             current_frame_gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
             # Detect ArUco markers from the frame
