@@ -53,6 +53,8 @@ class ServoPositionControl:
         average_closest_pan = (closest_pan + closest_pan_d1 + closest_pan_d2)/3
         rounded_pan = round(average_closest_pan/10)*10
 
+        
+
         self.pub_pan.publish(Int32(int(rounded_pan)))
 
 
