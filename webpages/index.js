@@ -198,30 +198,22 @@ function clearListeners() {
 
 // Implementation for publishing messages
 
-const publishBtn = document.getElementById("publish-btn");
+const publishBtn = document.getElementById("system-start");
+publishBtn.addEventListener("click", publishRosBool);
 
-async function changePublishText(){
+async function publishRosBool(rostopic, boolData){
 
-    let selectedValue = dropdown.options[dropdown.selectedIndex].value;
+    var message = new ROSLIB.Message({
+        data: boolData
+      });
 
-    let topicsClient = new ROSLIB.Service({
-        ros : ros,
-        name : '/rosapi/topics',
-        serviceType : 'rosapi/Topics'
-        });
+    var topic = new ROSLIB.Topic({
+        ros: ros,
+        name: rostopic,
+        messageType: 'std_msgs/Bool'
+    });
     
-    let request = new ROSLIB.ServiceRequest();
-
-    let topicList = await new Promise((resolve, reject) => {
-        topicsClient.callService(request, function(result) {
-            console.log("Getting topics...");
-            resolve(result);
-        })
-    })
-    // I know, it's not pretty but it works.
-    rosType = topicList["types"][topicList["topics"].indexOf(selectedValue)]
-
-    console.log(rosType)
+    topic.publish(message);
 }
 
 /* <input type="checkbox" id="checkbox-1" value="Option 1">
@@ -300,6 +292,7 @@ function createInputs(topicList) {
 
 var button = document.getElementById("toggleButton");
 var debug  = document.getElementById("debug");
+var client = document.getElementById("client");
 debug.style.display = "None"
 var currentState = "Client";
 
@@ -309,11 +302,13 @@ button.addEventListener("click", function() {
     currentState = "Debug"
     button.textContent = "Debug";
     debug.style.display = ""
+    debug.style.display = "None"
     
     } else {
     currentState = "Client"
     button.textContent = "Client";
     debug.style.display = "None"
+    debug.style.display = ""
     }
 });
 
