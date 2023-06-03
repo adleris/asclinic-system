@@ -10,12 +10,19 @@
   <table>
     <tr>
       <th colspan="2">
+        <button id="toggleButton" class="toggle-button">Client</button>
         <div class="center">
           <h1>Hello from Team A!</h1>
         </div>
       </th>
     </tr>
-    <tr>
+    <tr id="client">
+      <td>
+        <button id="system-start">Start Robot</button>
+        <button id="taken-photo">Take photo</button>
+      </td>
+    </tr>
+    <tr id="debug">
       <td>
         <button id="refresh-topic-btn">Refresh Topics</button>
         <select id="topic-dropdown">
@@ -26,12 +33,6 @@
         <input id="colour-option" type="checkbox">Colour</input>
         <input id="time-option" type="checkbox">Time</input>
         <br>
-        <select id="topic-dropdown2">
-          <option value="" selected disabled hidden>Select a topic</option>
-        </select>
-        <label for="inputValue">Enter a value:</label>
-        <input type="text" id="inputValue" name="inputValue">
-        <button id="publish-btn">Publish</button>
         <div id="console-wrapper">
           <div id="console"></div>
         </div>

@@ -20,11 +20,6 @@ ros.on('close', function() {
 // List all Topics
 const refreshBtn = document.getElementById("refresh-topic-btn");
 var checkboxes = document.querySelectorAll("#checkbox-list input[type='checkbox']");
-// checkboxes.forEach(checkbox => {
-//   checkbox.addEventListener("change", function() {
-//     console.log("Hello")
-//   });
-// });
 
 var filteredTopicList = [];
 
@@ -47,7 +42,6 @@ async function getTopics() {
     console.log(topicList)
     // Add topics to the dropdown menu
     addTopicToDropdown(topicList, "topic-dropdown")
-    addTopicToDropdown(topicList, "topic-dropdown2")
 
     addAscToConsole(topicList)
 
@@ -203,32 +197,31 @@ function clearListeners() {
 // ----------------------------------------------------------------------------
 
 // Implementation for publishing messages
-const dropdown2 = document.getElementById("topic-dropdown2");
-const publishBtn = document.getElementById("publish-btn");
 
-async function changePublishText(){
-    const dropdown = document.getElementById("topic-dropdown2");
+const sysStartBtn = document.getElementById("system-start");
+sysStartBtn.addEventListener("click", function(){
+    publishRosBool("/asc/system_start", true);
+})
 
-    let selectedValue = dropdown.options[dropdown.selectedIndex].value;
-
-    let topicsClient = new ROSLIB.Service({
-        ros : ros,
-        name : '/rosapi/topics',
-        serviceType : 'rosapi/Topics'
-        });
+const photoTakenBtn = document.getElementById("taken-photo");
+photoTakenBtn.addEventListener("click", function(){
+    publishRosBool("/asc/photo_taken", true);
+})
     
-    let request = new ROSLIB.ServiceRequest();
 
-    let topicList = await new Promise((resolve, reject) => {
-        topicsClient.callService(request, function(result) {
-            console.log("Getting topics...");
-            resolve(result);
-        })
-    })
-    // I know, it's not pretty but it works.
-    rosType = topicList["types"][topicList["topics"].indexOf(selectedValue)]
+async function publishRosBool(rostopic, boolData){
 
-    console.log(rosType)
+    var message = new ROSLIB.Message({
+        data: boolData
+      });
+
+    var topic = new ROSLIB.Topic({
+        ros: ros,
+        name: rostopic,
+        messageType: 'std_msgs/Bool'
+    });
+    
+    topic.publish(message);
 }
 
 /* <input type="checkbox" id="checkbox-1" value="Option 1">
@@ -260,8 +253,8 @@ async function changePublishText(){
 
 // }
 
-//publishBtn.addEventListener("click", publishMessage);
-dropdown2.addEventListener("change", changePublishText); 
+// //publishBtn.addEventListener("click", publishMessage);
+// dropdown2.addEventListener("change", changePublishText); 
 
 var toggleValue = false;
 
@@ -304,6 +297,29 @@ function createInputs(topicList) {
         checkboxList.append(container);
     }
 }
+
+var button = document.getElementById("toggleButton");
+var debug  = document.getElementById("debug");
+var client = document.getElementById("client");
+debug.style.display = "None"
+var currentState = "Client";
+
+
+button.addEventListener("click", function() {
+    if (currentState === "Client") {
+    currentState = "Debug"
+    button.textContent = "Debug";
+    debug.style.display = ""
+    client.style.display = "None"
+    
+    } else {
+    currentState = "Client"
+    button.textContent = "Client";
+    debug.style.display = "None"
+    client.style.display = ""
+    }
+});
+
 
 // Initialise Functions
 getTopics()
