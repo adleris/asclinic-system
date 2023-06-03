@@ -12,6 +12,7 @@ class kalman_filter:
         # TODO could make an initial pos topic that is sub to
         self.currPose = PoseFloat32(0, 0, 0)
         self.initial_pose_set = False
+        self.inRotation = False
 
         # ROS subs and publihing set up
         self.pose_publisher = rospy.Publisher(f"{NAMESPACE}/curr_pose", PoseFloat32, queue_size=1)
@@ -25,9 +26,15 @@ class kalman_filter:
         if not self.initial_pose_set:
             self.set_pose(event)
             self.initial_pose_set = True
+    
+    def set_inRotation(self, event):
+        self.inRotation = event.data
 
     def set_pose(self, event):
         # This takes the change to pose and adds them to the current pose to be published
+        if self.inRotation:
+            return
+        
         self.currPose.x     = event.x
         self.currPose.y     = event.y
         self.currPose.phi   = event.phi

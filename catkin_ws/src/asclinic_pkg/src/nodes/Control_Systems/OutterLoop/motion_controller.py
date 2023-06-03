@@ -4,16 +4,19 @@ from geometry_msgs.msg import Point
 from std_msgs.msg import Bool
 from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import pi, atan2
+from numpy import sign
 import rospy
 
-# TODO add a re orination at some point 
+# TODO add a re orination at some point and give matt the ability to roate 180
 
 NODE_NAME    = "motion_controller"
 NAME_SPACE   = "control"
 
-STATE_IDLE      = "IDLE"
+STATE_IDEL      = "IDEL"
 STATE_ROTATE    = "ROTATE"
 STATE_STRAIGHT  = "STRAIGHT"
+STATE_STRAIGHT_WITH_P_CONTROL = "STRAIGHT with P control"
+DRIVE_STATES = [STATE_STRAIGHT, STATE_STRAIGHT_WITH_P_CONTROL]
 ROTATE_LEFT     = 1
 ROTATE_RIGHT    = -1
 
@@ -27,16 +30,24 @@ class motion_controller():
         self.straightLineSpeed = 3
         self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05 # isnt in use
+        self.posePhiTolorance = (30/180) * pi
+        self.recalculateGoal = False
         
+        # P control
+        self.pControl_K = 5
+        self.limitOfControl = 0.5
+
         # state set up
         self.enableDrive = False
         self.stateQueue = []
-        self.state = STATE_IDLE
-        self.IDEL_stateCounter = 0
+        self.state = STATE_IDEL
+        self.stateCounter = 0
         
         self.goal_pose = PoseFloat32(0, 0, 0) 
+        self.publishedStateOf_inRoation = False
 
         # ros setup
+        self.inRotationPublisher = rospy.Publisher(f"{NAME_SPACE}/in_rotation", Bool, queue_size=1)
         self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
         rospy.Subscriber(f"{NAME_SPACE}/curr_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("/planner/next_target", Point, self.add_to_location_queue, queue_size=1)
@@ -44,8 +55,8 @@ class motion_controller():
         
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
-        self.IDEL_stateCounter = 0
-        self.state = STATE_IDLE
+        self.stateCounter = 0
+        self.state = STATE_IDEL
         refSignals = LeftRightFloat32(0,0)
         self.RefPublisher.publish(refSignals)
 
@@ -84,50 +95,100 @@ class motion_controller():
         rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
         self.enableDrive = event.data
 
-    def _rotationTransition(self):
+    def _rotationTransition(self, tolorance):
         # This has all logic for if the system should get out of the rotation state
         
         # This is the catch for if the goal rotation is on the range [pi, pi-tolerance]
-        if (self.goal_pose.phi > 0) and (self.goal_pose.phi > pi - self.rotationTolarance):
-            otherSideTolerence = self.rotationTolarance - (pi - self.goal_pose.phi)
+        if (self.goal_pose.phi > 0) and (self.goal_pose.phi > pi - tolorance):
+            otherSideTolerence = tolorance - (pi - self.goal_pose.phi)
 
             # catch for the cyclical nature 
             if (otherSideTolerence - pi < self.current_pose.phi):
                 return True
 
         # This is the catch for if the goal rotation is on the range (-pi, -pi+tolerance]
-        elif (self.goal_pose.phi < 0) and (self.goal_pose.phi < -pi + self.rotationTolarance):
-            otherSideTolerence = self.rotationTolarance - (pi + self.goal_pose.phi)
+        elif (self.goal_pose.phi < 0) and (self.goal_pose.phi < -pi + tolorance):
+            otherSideTolerence = tolorance - (pi + self.goal_pose.phi)
 
             # catch for the cyclical nature
             if (pi - otherSideTolerence) < self.current_pose.phi:
                 return True
         
         # This is the general catch for most cases
-        if (abs(self.current_pose.phi - self.goal_pose.phi) <= self.rotationTolarance):
+        if (abs(self.current_pose.phi - self.goal_pose.phi) <= tolorance) and (sign(self.current_pose.phi) == sign(self.goal_pose.phi)):
             return True
         
         # has yet to meet the conditions
         return False
 
+    def _actionWhenInPControlState(self):
+        if (self.current_pose.phi >= 0.5 * pi) and (self.goal_pose <= -0.5 * pi):
+            phiError = (self.goal_pose.phi + 2 * pi) - self.current_pose.phi
+        elif (self.current_pose.phi <= -0.5 * pi) and (self.goal_pose >= 0.5 * pi):
+            phiError = self.goal_pose.phi - (self.current_pose.phi + 2 * pi)
+        else:
+            phiError = self.goal_pose.phi - self.current_pose.phi
+        
+        if phiError > 0:
+            if (self.pControl_K * phiError > self.limitOfControl):
+                leftWheelSpeed = self.straightLineSpeed - self.limitOfControl
+            else:
+                leftWheelSpeed  = self.straightLineSpeed - (self.pControl_K * phiError > self.limitOfControl)
+            rightWheelSpeed = self.straightLineSpeed
+
+        else:
+            leftWheelSpeed  = self.straightLineSpeed 
+            if (self.pControl_K * abs(phiError) > self.limitOfControl):
+                rightWheelSpeed = self.straightLineSpeed - self.limitOfControl
+            else:
+                rightWheelSpeed = self.straightLineSpeed - self.pControl_K * abs(phiError)
+        
+        return leftWheelSpeed, rightWheelSpeed
 
     def control_main_loop(self, event):
         self.current_pose = event
         
         # Transitions for States:
-        if (self.state == STATE_IDLE) and (self.IDEL_stateCounter >= 5):
+        if (self.state == STATE_IDEL):
+            if (STATE_ROTATE in self.stateQueue) and (not self.publishedStateOf_inRoation):
+                self.publishedStateOf_inRoation = True
+                self.inRotationPublisher.publish(True)
+            elif (STATE_ROTATE not in self.stateQueue) and (self.publishedStateOf_inRoation):
+                self.publishedStateOf_inRoation = False
+                self.inRotationPublisher.publish(False)
+
+        if (self.state == STATE_IDEL) and (self.stateCounter >= 2) and self.recalculateGoal:
+            self.calc_goal_pose()
+            self.recalculateGoal = False
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+
+        if (self.state == STATE_IDEL) and (self.stateCounter >= 5):
+            self.stateCounter = 0
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop(0)
+                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
-        if (self.state == STATE_ROTATE) and self._rotationTransition():
-            rospy.loginfo(f"Current State: {self.state}")
-            self.IDEL_stateCounter = 0
-            self.state = STATE_IDLE
+        if (self.state == STATE_ROTATE) and self._rotationTransition(self.rotationTolarance):
+            self.stateCounter = 0
+            self.state = STATE_IDEL
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
-        # This could just output zero i.e. needs to be true to output a drive signal
-        # if not self.enableDrive:
-        #     self.state = STATE_IDLE
-                    
+        if (self.state ==  DRIVE_STATES) and (self.stateCounter >= 80):
+            self.state = STATE_STRAIGHT_WITH_P_CONTROL
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+        
+        if (self.state in DRIVE_STATES) and (self.stateCounter % 100 == 0):
+            self.calc_goal_pose()
+
+        if (self.state in DRIVE_STATES) and not self._rotationTransition(self.posePhiTolorance):
+            self.stateQueue = [STATE_ROTATE, STATE_STRAIGHT]
+            self.stateCounter = 0
+            self.state = STATE_IDEL
+            self.recalculateGoal = True
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+        
+        self.stateCounter += 1 
+        
         # Outputs for the States:
         refSignals = LeftRightFloat32()
         
@@ -137,17 +198,19 @@ class motion_controller():
         
         elif self.state == STATE_STRAIGHT and self.enableDrive:
             #? Maybe add a ramp function 
-            #? also think about breaking halfway 
+            #? also think about breaking halfway
             refSignals.left     = self.straightLineSpeed
             refSignals.right    = self.straightLineSpeed
+        
+        elif self.state == STATE_STRAIGHT and self.enableDrive:
+            refSignals.left, refSignals.right = self._actionWhenInPControlState()
+        
         else:
             # this is deafult for seafty 
             refSignals.left     = 0
             refSignals.right    = 0
 
-            # only incirments if in IDLE state
-            if self.state == STATE_IDLE:
-                self.IDEL_stateCounter += 1
+            
 
         self.RefPublisher.publish(refSignals)
 
@@ -156,7 +219,7 @@ if __name__ == "__main__":
         rospy.init_node(NODE_NAME)
         controller = motion_controller()
         rospy.spin()
-    except KeyboardInterrupt:
+    except:
         refSignals = LeftRightFloat32(0, 0)
         controller.RefPublisher.publish(refSignals)
         exit()
