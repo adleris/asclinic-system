@@ -199,7 +199,10 @@ function clearListeners() {
 // Implementation for publishing messages
 
 const publishBtn = document.getElementById("system-start");
-publishBtn.addEventListener("click", publishRosBool);
+publishBtn.addEventListener("click", function(){
+    publishRosBool("/asc/system_start", true);
+})
+    
 
 async function publishRosBool(rostopic, boolData){
 
@@ -302,13 +305,13 @@ button.addEventListener("click", function() {
     currentState = "Debug"
     button.textContent = "Debug";
     debug.style.display = ""
-    debug.style.display = "None"
+    client.style.display = "None"
     
     } else {
     currentState = "Client"
     button.textContent = "Client";
     debug.style.display = "None"
-    debug.style.display = ""
+    client.style.display = ""
     }
 });
 
