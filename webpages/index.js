@@ -202,6 +202,11 @@ const sysStartBtn = document.getElementById("system-start");
 sysStartBtn.addEventListener("click", function(){
     publishRosBool("/asc/system_start", true);
 })
+
+const photoTakenBtn = document.getElementById("system-start");
+photoTakenBtn.addEventListener("click", function(){
+    publishRosBool("/asc/photo_taken", true);
+})
     
 
 async function publishRosBool(rostopic, boolData){
