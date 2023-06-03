@@ -30,7 +30,7 @@ class motion_controller():
         self.straightLineSpeed = 3
         self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05 # isnt in use
-        self.posePhiTolorance = (20/180) * pi
+        self.posePhiTolorance = (30/180) * pi
         self.recalculateGoal = False
         
         # P control
@@ -150,19 +150,22 @@ class motion_controller():
         if (self.state == STATE_IDEL) and (self.stateCounter >= 2) and self.recalculateGoal:
             self.calc_goal_pose()
             self.recalculateGoal = False
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
 
         if (self.state == STATE_IDEL) and (self.stateCounter >= 5):
             self.stateCounter = 0
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop(0)
+                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
         if (self.state == STATE_ROTATE) and self._rotationTransition(self.rotationTolarance):
-            rospy.loginfo(f"Current State: {self.state}")
             self.stateCounter = 0
             self.state = STATE_IDEL
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
         if (self.state ==  DRIVE_STATES) and (self.stateCounter >= 80):
             self.state = STATE_STRAIGHT_WITH_P_CONTROL
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
         if (self.state in DRIVE_STATES) and (self.stateCounter % 100 == 0):
             self.calc_goal_pose()
@@ -172,6 +175,7 @@ class motion_controller():
             self.stateCounter = 0
             self.state = STATE_IDEL
             self.recalculateGoal = True
+            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
         self.stateCounter += 1 
         
