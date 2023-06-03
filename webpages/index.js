@@ -1,3 +1,5 @@
+import { createMapTopicCallbackMapping } from './map.js';
+
 // Connect to Ros Bridge
 var ros = new ROSLIB.Ros({
     url : 'ws://10.41.146.230:9090'
@@ -43,7 +45,11 @@ async function getTopics() {
     // Add topics to the dropdown menu
     addTopicToDropdown(topicList, "topic-dropdown")
 
+    console.log("add topics to console")
     addAscToConsole(topicList)
+
+    console.log("creating mappings")
+    createMapTopicCallbackMapping(ros, topicList);
 
     // Add topics to checkbox list
     createInputs(topicList)
@@ -151,7 +157,7 @@ function addAscToConsole(topicList){
     let n = 0;
     listenerArray = []
 
-    for (i=0; i < topicList["topics"].length; i++) {
+    for (let i=0; i < topicList["topics"].length; i++) {
 
         // if (!topicList["topics"][i].startsWith('/asc')) {
         //     continue;
@@ -277,7 +283,7 @@ function createInputs(topicList) {
     const checkboxList = document.getElementById("checkbox-list");
     checkboxList.innerHTML = ""
 
-    for (i=0; i < topicList["topics"].length; i++){
+    for (let i=0; i < topicList["topics"].length; i++){
         let checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.id = topicList["topics"][i];
