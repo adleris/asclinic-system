@@ -23,7 +23,7 @@ class kalman_filter:
         # sets the a new pose once, used for the intial pose
         rospy.loginfo("[Kalman] Received Initial Pose")
         if not self.initial_pose_set:
-            self.update_pose(event)
+            self.set_pose(event)
             self.initial_pose_set = True
 
     def set_pose(self, event):

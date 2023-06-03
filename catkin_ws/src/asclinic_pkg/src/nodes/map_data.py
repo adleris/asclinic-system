@@ -8,18 +8,20 @@ class MapData:
     def __init__(self):
 
         self.aruco_marker_pose = {
-        # Marker ID : [x, y, phi]
-
-            "9"  :  [8.95,  1.08,   180],
-            "13" :  [0.5,   9,      0],
-            "19" :  [6.82,  9.88,   -135]
+        # Marker ID : [x, y, phi (in degrees)]
+            "23" :  [5.35,  3.56,   -90],
+            "27"  :  [6.97,  2.09,   -135],
+            "28" :  [5.62,  9.98,   -180]
+            
+            # "13" :  [0.5,   9,      0],
+            # "19" :  [6.82,  9.88,   -135]
         }
 
         self.global_target_positions =[
         # Plant position: [x, y, z]
         # z not used, should be set to zero
         # For now, based on Alex's node positions
-            [4.55, 2.25],
+            [9.15, 5.12],
             [4.58, 3.41]
         ]
 

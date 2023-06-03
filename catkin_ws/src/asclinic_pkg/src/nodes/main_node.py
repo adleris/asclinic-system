@@ -17,7 +17,7 @@ from map_data import MapData
 
 MAIN_NODE_FREQ  = 5 # Hz
 INITIAL_NODE    = 0 # node index
-INITIAL_POSE    = PoseFloat32(3.55, 0.76, 0)
+INITIAL_POSE    = PoseFloat32(5.24, 1.29, np.pi/2)
 
 # ---------------------------------------------------------------------------------
 
