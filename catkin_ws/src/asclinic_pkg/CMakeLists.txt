@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
+  cv_bridge
   geometry_msgs
   genmsg
   roslib
@@ -130,7 +131,7 @@ generate_messages(
 # )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs roslib
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs roslib sensor_msgs cv_bridge
 )
 
 ###########

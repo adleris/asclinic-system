@@ -1,6 +1,7 @@
 // Connect to Ros Bridge
 var ros = new ROSLIB.Ros({
-    url : 'ws://10.41.146.230:9090'
+    // url : 'ws://10.41.146.230:9090'
+    url : 'ws://0.0.0.0:9090'
 });
 
 ros.on('connection', function() {
@@ -20,11 +21,6 @@ ros.on('close', function() {
 // List all Topics
 const refreshBtn = document.getElementById("refresh-topic-btn");
 var checkboxes = document.querySelectorAll("#checkbox-list input[type='checkbox']");
-// checkboxes.forEach(checkbox => {
-//   checkbox.addEventListener("change", function() {
-//     console.log("Hello")
-//   });
-// });
 
 var filteredTopicList = [];
 
@@ -47,7 +43,6 @@ async function getTopics() {
     console.log(topicList)
     // Add topics to the dropdown menu
     addTopicToDropdown(topicList, "topic-dropdown")
-    addTopicToDropdown(topicList, "topic-dropdown2")
 
     addAscToConsole(topicList)
 
@@ -203,11 +198,10 @@ function clearListeners() {
 // ----------------------------------------------------------------------------
 
 // Implementation for publishing messages
-const dropdown2 = document.getElementById("topic-dropdown2");
+
 const publishBtn = document.getElementById("publish-btn");
 
 async function changePublishText(){
-    const dropdown = document.getElementById("topic-dropdown2");
 
     let selectedValue = dropdown.options[dropdown.selectedIndex].value;
 
@@ -260,8 +254,8 @@ async function changePublishText(){
 
 // }
 
-//publishBtn.addEventListener("click", publishMessage);
-dropdown2.addEventListener("change", changePublishText); 
+// //publishBtn.addEventListener("click", publishMessage);
+// dropdown2.addEventListener("change", changePublishText); 
 
 var toggleValue = false;
 
@@ -304,6 +298,26 @@ function createInputs(topicList) {
         checkboxList.append(container);
     }
 }
+
+var button = document.getElementById("toggleButton");
+var debug  = document.getElementById("debug");
+debug.style.display = "None"
+var currentState = "Client";
+
+
+button.addEventListener("click", function() {
+    if (currentState === "Client") {
+    currentState = "Debug"
+    button.textContent = "Debug";
+    debug.style.display = ""
+    
+    } else {
+    currentState = "Client"
+    button.textContent = "Client";
+    debug.style.display = "None"
+    }
+});
+
 
 // Initialise Functions
 getTopics()
