@@ -3,7 +3,7 @@ import rospy
 import time
 
 # Import the standard message types
-from std_msgs.msg import String, Bool
+from std_msgs.msg import String, Bool, Int32
 from geometry_msgs.msg import Pose, Point, Quaternion
 from asclinic_pkg.msg import PoseFloat32
 
@@ -52,6 +52,12 @@ class MainNode:
         self.pub_enable_drive        = rospy.Publisher("/asc"+"/enable_drive", Bool, queue_size=10)
         self.pub_enable_photo        = rospy.Publisher("/asc"+"/enable_photo", Bool, queue_size=10)
         self.pub_initial_pose        = rospy.Publisher("/asc"+"/initial_pose", PoseFloat32, queue_size=10)
+        self.pub_pan                 = rospy.Publisher("/asc"+"/pan_deg", Int32, queue_size=10)
+        self.pub_tilt                = rospy.Publisher("/asc"+"/tilt_deg", Int32, queue_size=10)
+
+        time.sleep(3)
+        self.pub_pan.publish(0)
+        self.pub_tilt.publish(0)
         
         # Initialise Publishers
         self.pub_main_state.publish(self.s_main_state)

@@ -2,6 +2,7 @@
 
 import numpy as np
 from geometry_msgs.msg import Point
+from asclinic_pkg.msg import PoseFloat32
 
 class MapData:
 
@@ -26,9 +27,14 @@ class MapData:
             [4.58, 3.41]
         ]
 
+
     def get_point(self, index):
         point = Point(self.global_target_positions[index][0], self.global_target_positions[index][1],0)
         return point
+
+    def get_target_pose(self, index):
+        pose = PoseFloat32(self.aruco_marker_pose[index][0], self.aruco_marker_pose[index][1], self.aruco_marker_pose[index][2])
+        return pose
 
     def translation_matrix(self, index):
         x = self.aruco_marker_pose[index][0]

@@ -74,7 +74,7 @@ void servoSubscriberCallback(const asclinic_pkg::ServoPulseWidth& msg)
 	uint16_t pulse_width_in_us = msg.pulse_width_in_microseconds;
 
 	// Display the message received
-	ROS_INFO_STREAM("[I2C FOR SERVOS] Message received for servo with channel = " << static_cast<int>(channel) << ", and pulse width [us] = " << static_cast<int>(pulse_width_in_us) );
+	// ROS_INFO_STREAM("[I2C FOR SERVOS] Message received for servo with channel = " << static_cast<int>(channel) << ", and pulse width [us] = " << static_cast<int>(pulse_width_in_us) );
 
 	// Limit the pulse width to be either:
 	// > zero
