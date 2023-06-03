@@ -44,8 +44,10 @@ class motion_controller():
         self.stateCounter = 0
         
         self.goal_pose = PoseFloat32(0, 0, 0) 
+        self.publishedStateOf_inRoation = False
 
         # ros setup
+        self.inRotationPublisher = rospy.Publisher(f"{NAME_SPACE}/in_rotation", Bool, queue_size=1)
         self.RefPublisher = rospy.Publisher(f"{NAME_SPACE}/wheel_speeds_reference", LeftRightFloat32, queue_size=1)
         rospy.Subscriber(f"{NAME_SPACE}/curr_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("/planner/next_target", Point, self.add_to_location_queue, queue_size=1)
@@ -147,6 +149,14 @@ class motion_controller():
         self.current_pose = event
         
         # Transitions for States:
+        if (self.state == STATE_IDEL):
+            if (STATE_ROTATE in self.stateQueue) and (not self.publishedStateOf_inRoation):
+                self.publishedStateOf_inRoation = True
+                self.inRotationPublisher.publish(True)
+            elif (STATE_ROTATE not in self.stateQueue) and (self.publishedStateOf_inRoation):
+                self.publishedStateOf_inRoation = False
+                self.inRotationPublisher.publish(False)
+
         if (self.state == STATE_IDEL) and (self.stateCounter >= 2) and self.recalculateGoal:
             self.calc_goal_pose()
             self.recalculateGoal = False
@@ -209,7 +219,7 @@ if __name__ == "__main__":
         rospy.init_node(NODE_NAME)
         controller = motion_controller()
         rospy.spin()
-    except KeyboardInterrupt:
+    except:
         refSignals = LeftRightFloat32(0, 0)
         controller.RefPublisher.publish(refSignals)
         exit()
