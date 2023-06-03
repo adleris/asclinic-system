@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from asclinic_pkg.msg import PoseFloat32
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Bool
 from math import pi
 import numpy as np
 import rospy
@@ -14,17 +14,27 @@ class ServoPositionControl:
         self.pan_angle      = 0
         self.tilt_angle     = 0
         self.map_data       = MapData()
+        self.enable_tracking = False
+        self.inRotation = False
 
         rospy.Subscriber("/asc/control/curr_pose", PoseFloat32, self.calc_camera_position, queue_size=1)
+        rospy.Subscriber("/asc/enable_camera_track", Bool, self.set_tracking_enable, queue_size=1)
+        rospy.Subscriber("/asc/control/in_rotation", Bool, self.set_inRotation, queue_size=1)
         
         self.pub_pan = rospy.Publisher("/asc"+"/pan_deg", Int32, queue_size=10)
         self.pub_tilt = rospy.Publisher("/asc"+"/tilt_deg", Int32, queue_size=10)
 
-        self.pub_pan.publish(self.pan_angle)
-        self.pub_tilt.publish(self.tilt_angle)
-
+    def set_tracking_enable(self, event):
+        print(f"enable_tracking {event.data}")
+        self.enable_tracking = event.data
+    
+    def set_inRotation(self, event):
+        self.inRotation = event.data
 
     def calc_camera_position(self, event):
+
+        if self.enable_tracking == False:
+            return
 
         curr_pose = event
         # Find closest marker
@@ -37,12 +47,11 @@ class ServoPositionControl:
             pan_angle = self.delta_angle(curr_pose, marker_pose)
             if pan_angle == None:
                 continue
-            euclid_dist = (curr_pose.x - marker_pose.x)**2 + (curr_pose.x - marker_pose.x)**2
+            euclid_dist = (curr_pose.x - marker_pose.x)**2 + (curr_pose.y - marker_pose.y)**2
             if euclid_dist < closest_distance:
                 closest_distance    = euclid_dist
                 closest_index       = marker_index
                 closest_pan         = pan_angle
-
         # No valid marker found
         if closest_pan == None:
             return

@@ -10,8 +10,9 @@ class MapData:
 
         self.aruco_marker_pose = {
         # Marker ID : [x, y, phi (in degrees)]
+            "18" :  [5.77, 7.91,    -90],
             "23" :  [5.35,  3.56,   -90],
-            "28" :  [6.97,  2.09,   -135],
+            # "28" :  [6.97,  2.09,   -135],
             "29" :  [9.98,  5.62,  -180],
             "26" :  [6.63,  5.25,   -90],
             "27"  :  [6.97,  2.09,   -135]
@@ -23,8 +24,14 @@ class MapData:
         # Plant position: [x, y, z]
         # z not used, should be set to zero
         # For now, based on Alex's node positions
-            [9.15, 5.12],
+            [6.56, 5.84],
             [4.58, 3.41]
+        ]
+
+        self.plant_camera_pose = [
+        # Plant pose: [pan, tilt, phi]
+            [0, 15, 135]
+
         ]
 
 

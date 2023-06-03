@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 from geometry_msgs.msg import Point
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int32
 from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
 from math import pi, atan2
-from numpy import sign
+from numpy import sign, radians
 import rospy
 
 # TODO add a re orination at some point and give matt the ability to roate 180
@@ -27,7 +27,7 @@ class motion_controller():
         
         # constants needed for movment 
         self.rotationSpeed = 0.5
-        self.straightLineSpeed = 3
+        self.straightLineSpeed = 2
         self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05 # isnt in use
         self.posePhiTolorance = (30/180) * pi
@@ -52,6 +52,7 @@ class motion_controller():
         rospy.Subscriber(f"{NAME_SPACE}/curr_pose", PoseFloat32, self.control_main_loop, queue_size=1)
         rospy.Subscriber("/planner/next_target", Point, self.add_to_location_queue, queue_size=1)
         rospy.Subscriber("/asc/enable_drive", Bool, self.setEnableDrive, queue_size=1)
+        rospy.Subscriber("/asc/update_phi", Int32, self.update_phi, queue_size=1)
         
     def add_to_location_queue(self, event):
         rospy.loginfo(f"New Target Location x: {event.x}, y: {event.y}")
@@ -65,6 +66,31 @@ class motion_controller():
         
         self.goal_point = event
         self.calc_goal_pose()
+
+    def update_phi(self, event):
+
+        rospy.loginfo(f"New Target Location phi: {event.data}")
+        self.stateCounter = 0
+        self.state = STATE_IDEL
+        refSignals = LeftRightFloat32(0,0)
+        self.RefPublisher.publish(refSignals)
+
+        # rotate
+        self.stateQueue = [STATE_ROTATE]
+        self.goal_pose.phi = radians(event.data)
+
+        if self.current_pose.phi >= 0.0:
+            # Catch for [0, pi] as current angle
+            if (self.current_pose.phi <= self.goal_pose.phi) or (self.current_pose.phi - pi >= self.goal_pose.phi):
+                self.rotateMultiplier = ROTATE_LEFT
+            else:
+                self.rotateMultiplier = ROTATE_RIGHT
+        else:
+            # Catch for (-pi, 0] as current angle
+            if (self.current_pose.phi >= self.goal_pose.phi) or (self.current_pose.phi + pi <= self.goal_pose.phi):
+                self.rotateMultiplier = ROTATE_RIGHT
+            else:
+                self.rotateMultiplier = ROTATE_LEFT
 
     def calc_goal_pose(self):
         self.goal_pose.x = self.goal_point.x
