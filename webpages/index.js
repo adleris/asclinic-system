@@ -198,8 +198,8 @@ function clearListeners() {
 
 // Implementation for publishing messages
 
-const publishBtn = document.getElementById("system-start");
-publishBtn.addEventListener("click", function(){
+const sysStartBtn = document.getElementById("system-start");
+sysStartBtn.addEventListener("click", function(){
     publishRosBool("/asc/system_start", true);
 })
     
