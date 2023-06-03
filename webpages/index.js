@@ -203,7 +203,7 @@ sysStartBtn.addEventListener("click", function(){
     publishRosBool("/asc/system_start", true);
 })
 
-const photoTakenBtn = document.getElementById("system-start");
+const photoTakenBtn = document.getElementById("taken-photo");
 photoTakenBtn.addEventListener("click", function(){
     publishRosBool("/asc/photo_taken", true);
 })
