@@ -79,7 +79,7 @@ DESIRED_CAMERA_FPS = 5
 # Size of Aruco marker
 MARKER_SIZE = 0.250
 
-BLUR_THRESHOLD = 40
+BLUR_THRESHOLD = 50
 
 class ArucoDetector:
 
