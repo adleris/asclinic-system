@@ -180,7 +180,7 @@ class motion_controller():
         if (self.state in DRIVE_STATES) and (self.stateCounter % 100 == 0):
             self.calc_goal_pose()
 
-        if (self.state in DRIVE_STATES) and self._rotationTransition(self.posePhiTolorance):
+        if (self.state in DRIVE_STATES) and not self._rotationTransition(self.posePhiTolorance):
             self.stateQueue = [STATE_ROTATE, STATE_STRAIGHT]
             self.stateCounter = 0
             self.state = STATE_IDEL
