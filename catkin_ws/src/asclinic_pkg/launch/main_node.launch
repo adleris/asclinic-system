@@ -3,6 +3,8 @@
      <arg name="port" value="9090"/>
   </include>
 
+   <node name="web_video_server" pkg="web_video_server" type="web_video_server" />
+
   	<!-- START A GROUP WITH A NAMESPACE -->
 	<group ns="asc">
 

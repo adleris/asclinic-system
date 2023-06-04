@@ -38,7 +38,7 @@ class kalman_filter:
         # This takes the change to pose and adds them to the current pose to be published
         if not self.initial_pose_set:
             self.initial_pose_set = True
-            
+        print(self.inRotation)
         if self.inRotation:
             return
         

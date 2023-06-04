@@ -79,7 +79,7 @@ DESIRED_CAMERA_FPS = 5
 # Size of Aruco marker
 MARKER_SIZE = 0.250
 
-BLUR_THRESHOLD = 50
+BLUR_THRESHOLD = 40
 
 class ArucoDetector:
 
@@ -263,6 +263,9 @@ class ArucoDetector:
                     
                     # Test to see if this is a marker we know about
                     if (str(this_id) in self.marker_data.aruco_marker_pose):
+                        edist = np.sqrt((tvec[2][0]**2 + tvec[0][0]**2))
+                        if edist > 3:
+                            continue
                         
                         if ((pose_info == None) or (tvec[2][0]**2 + tvec[0][0]**2 > pose_info["e_dist"])):
                             pose_info = {
@@ -275,7 +278,8 @@ class ArucoDetector:
                 
                 if pose_info == None:
                     return
-
+                
+                # print(cv2.Laplacian(current_frame_gray, cv2.CV_64F).var())
                 if cv2.Laplacian(current_frame_gray, cv2.CV_64F).var() <= BLUR_THRESHOLD:
                     return
 
@@ -314,8 +318,8 @@ class ArucoDetector:
                 phi = phi_m - phi_c - self.servo_phi# negative to make the math work out
                 
                 if (abs(phi) > np.pi):
-                    phi = 2*np.pi - np.sign(phi)*phi
-                print(f"phi: {np.degrees(phi)}\t\tphi_est: {np.degrees(phi_m - phi_c)}\t\tservo_phi: {-self.servo_phi}")
+                    phi = phi - np.sign(phi)*2*np.pi 
+                # print(f"phi: {np.degrees(phi)}\t\tphi_est: {np.degrees(phi_m - phi_c)}\t\tservo_phi: {-self.servo_phi}")
                 # print("x_c: " + str(x_c) + " y_c: " + str(y_c) + " phi: " + str(np.degrees(phi)))
                 data_string = PoseFloat32()
                 data_string.x = x_c

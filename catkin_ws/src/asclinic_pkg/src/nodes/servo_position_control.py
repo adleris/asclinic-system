@@ -47,13 +47,15 @@ class ServoPositionControl:
             pan_angle = self.delta_angle(curr_pose, marker_pose)
             if pan_angle == None:
                 continue
-            euclid_dist = (curr_pose.x - marker_pose.x)**2 + (curr_pose.y - marker_pose.y)**2
+            euclid_dist = np.sqrt((curr_pose.x - marker_pose.x)**2 + (curr_pose.y - marker_pose.y)**2)
+
             if euclid_dist < closest_distance:
                 closest_distance    = euclid_dist
                 closest_index       = marker_index
                 closest_pan         = pan_angle
         # No valid marker found
         if closest_pan == None:
+            self.pub_pan.publish(Int32(0))
             return
         
         # 3 stage moving average to avoid spikes
@@ -61,8 +63,6 @@ class ServoPositionControl:
         closest_pan_d2 = closest_pan_d1
         average_closest_pan = (closest_pan + closest_pan_d1 + closest_pan_d2)/3
         rounded_pan = round(average_closest_pan/10)*10
-
-        
 
         self.pub_pan.publish(Int32(int(rounded_pan)))
 
@@ -107,7 +107,7 @@ class ServoPositionControl:
         elif phi_mc > 180:
             phi_mc -= 360
 
-        if abs(phi_mc) > 90:
+        if abs(phi_mc) > 45:
             return None
         
         # Condition met when the servo can pan to a given marker and it can be viewed

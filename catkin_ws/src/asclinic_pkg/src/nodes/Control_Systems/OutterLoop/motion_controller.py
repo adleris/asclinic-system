@@ -3,10 +3,12 @@
 from geometry_msgs.msg import Point
 from std_msgs.msg import Bool, Int32
 from asclinic_pkg.msg import PoseFloat32, LeftRightFloat32
-from math import pi, atan2
+from math import pi, atan2, floor
 from numpy import sign, radians
 import rospy
 
+
+print_debug = False
 # TODO add a re orination at some point and give matt the ability to roate 180
 
 NODE_NAME    = "motion_controller"
@@ -27,7 +29,7 @@ class motion_controller():
         
         # constants needed for movment 
         self.rotationSpeed = 0.5
-        self.straightLineSpeed = 2
+        self.straightLineSpeed = 3
         self.rotationTolarance = (2/180) * pi 
         self.locationTolarance = 0.05 # isnt in use
         self.posePhiTolorance = (30/180) * pi
@@ -118,7 +120,8 @@ class motion_controller():
                 self.rotateMultiplier = ROTATE_LEFT
 
     def setEnableDrive(self, event):
-        rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
+        if (print_debug):
+            rospy.loginfo("[motion_controller] /asc/enable_drive received: " + str(event.data))
         self.enableDrive = event.data
 
     def _rotationTransition(self, tolorance):
@@ -148,9 +151,9 @@ class motion_controller():
         return False
 
     def _actionWhenInPControlState(self):
-        if (self.current_pose.phi >= 0.5 * pi) and (self.goal_pose <= -0.5 * pi):
+        if (self.current_pose.phi >= 0.5 * pi) and (self.goal_pose.phi <= -0.5 * pi):
             phiError = (self.goal_pose.phi + 2 * pi) - self.current_pose.phi
-        elif (self.current_pose.phi <= -0.5 * pi) and (self.goal_pose >= 0.5 * pi):
+        elif (self.current_pose.phi <= -0.5 * pi) and (self.goal_pose.phi >= 0.5 * pi):
             phiError = self.goal_pose.phi - (self.current_pose.phi + 2 * pi)
         else:
             phiError = self.goal_pose.phi - self.current_pose.phi
@@ -186,24 +189,28 @@ class motion_controller():
         if (self.state == STATE_IDEL) and (self.stateCounter >= 2) and self.recalculateGoal:
             self.calc_goal_pose()
             self.recalculateGoal = False
-            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+            if (print_debug):
+                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
 
         if (self.state == STATE_IDEL) and (self.stateCounter >= 5):
             self.stateCounter = 0
             if len(self.stateQueue) >= 1:
                 self.state = self.stateQueue.pop(0)
-                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+                if (print_debug):
+                    rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
         if (self.state == STATE_ROTATE) and self._rotationTransition(self.rotationTolarance):
             self.stateCounter = 0
             self.state = STATE_IDEL
-            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+            if (print_debug):
+                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
-        if (self.state ==  DRIVE_STATES) and (self.stateCounter >= 80):
+        if (self.state in DRIVE_STATES) and (self.stateCounter >= 80):
             self.state = STATE_STRAIGHT_WITH_P_CONTROL
-            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+            if (print_debug):
+                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
-        if (self.state in DRIVE_STATES) and (self.stateCounter % 100 == 0):
+        if (self.state in DRIVE_STATES) and (self.stateCounter % 50 == 0):
             self.calc_goal_pose()
 
         if (self.state in DRIVE_STATES) and not self._rotationTransition(self.posePhiTolorance):
@@ -211,7 +218,8 @@ class motion_controller():
             self.stateCounter = 0
             self.state = STATE_IDEL
             self.recalculateGoal = True
-            rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
+            if (print_debug):   
+                rospy.loginfo(f"[{NODE_NAME}] Current State: {self.state}")
         
         self.stateCounter += 1 
         
@@ -223,12 +231,15 @@ class motion_controller():
             refSignals.right    =    self.rotateMultiplier * self.rotationSpeed
         
         elif self.state == STATE_STRAIGHT and self.enableDrive:
-            #? Maybe add a ramp function 
-            #? also think about breaking halfway
-            refSignals.left     = self.straightLineSpeed
-            refSignals.right    = self.straightLineSpeed
+            if self.stateCounter < 15:
+                refSignals.left     = floor(self.stateCounter/5 + 1)/4 * self.straightLineSpeed
+                refSignals.right    = floor(self.stateCounter/5 + 1)/4 * self.straightLineSpeed
+            else:
+                refSignals.left     = self.straightLineSpeed
+                refSignals.right    = self.straightLineSpeed
+
         
-        elif self.state == STATE_STRAIGHT and self.enableDrive:
+        elif self.state == STATE_STRAIGHT_WITH_P_CONTROL and self.enableDrive:
             refSignals.left, refSignals.right = self._actionWhenInPControlState()
         
         else:
