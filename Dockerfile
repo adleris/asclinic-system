@@ -6,6 +6,7 @@ RUN apt update \
         gpiod \
         libgpiod-dev \
         libgpiod-doc \
+        ros-noetic-rosbridge-server \
         ros-noetic-tf \
         tmux \
     && apt clean \

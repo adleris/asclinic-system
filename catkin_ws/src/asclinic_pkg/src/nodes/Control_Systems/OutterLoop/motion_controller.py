@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from geometry_msgs.msg import Point
 from std_msgs.msg import Bool, Int32
