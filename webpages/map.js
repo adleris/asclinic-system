@@ -16,7 +16,10 @@ let topicMap = {
 
 let mapTopicListeners = [];
 
+let image;
 let imageReady = false;
+let originalImageDimensions = null;
+let scaledImageDimensions = null;
 
 
 /* Exported functions ------------------------------------------------------ */
@@ -79,18 +82,38 @@ function drawLine(context, x1, y1, x2, y2, color) {
 }
 
 function loadImage() {
-  const image = new Image();
+  console.log('MAP: loading image');
+  image = new Image();
   image.src = 'room_map.png';
-  image.onload = () => imageReady = true;
+  image.onload = () => {
+    console.log('MAP: image loaded')
+    imageReady = true;
+    originalImageDimensions = {width: image.width, height: image.height};
+    console.log(originalImageDimensions);
+    scaledImageDimensions = calculateAspectRatioFit(originalImageDimensions.width, originalImageDimensions.height, 600, 600);
+    console.log(scaledImageDimensions);
+
+    const canvas = document.getElementById('map-canvas');
+    canvas.height = scaledImageDimensions.height;
+    canvas.width = scaledImageDimensions.width;
+    return drawMap();
+  }
 }
+
+function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
+
+  let ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+
+  return { width: srcWidth*ratio, height: srcHeight*ratio };
+}
+
 
 // Function to draw the map (known data points and lines)
 function drawMap() {
-  console.log("draw function")
+  console.log("MAP: draw function")
   if (!imageReady) {
-    console.log("not ready")
-    loadImage();
-    return;
+    console.log("MAP: not ready")
+    return loadImage();
   }
 
   const canvas = document.getElementById('map-canvas');
@@ -130,10 +153,8 @@ function drawMap() {
   
 // Start plotting the known data points
 document.addEventListener('DOMContentLoaded', () => {
-  const canvas = document.getElementById('map-canvas');
-  const context = canvas.getContext('2d');
+  console.log("DOM content loaded")
   drawMap();
-  console.log("content loaded")
 });
   
 // export {
