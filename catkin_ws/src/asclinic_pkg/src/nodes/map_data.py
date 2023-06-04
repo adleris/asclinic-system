@@ -2,6 +2,7 @@
 
 import numpy as np
 from geometry_msgs.msg import Point
+from asclinic_pkg.msg import PoseFloat32
 
 class MapData:
 
@@ -9,8 +10,9 @@ class MapData:
 
         self.aruco_marker_pose = {
         # Marker ID : [x, y, phi (in degrees)]
+            "18" :  [5.77, 7.91,    -90],
             "23" :  [5.35,  3.56,   -90],
-            "28" :  [6.97,  2.09,   -135],
+            # "28" :  [6.97,  2.09,   -135],
             "29" :  [9.98,  5.62,  -180],
             "26" :  [6.63,  5.25,   -90],
             "27"  :  [6.97,  2.09,   -135]
@@ -22,13 +24,24 @@ class MapData:
         # Plant position: [x, y, z]
         # z not used, should be set to zero
         # For now, based on Alex's node positions
-            [9.15, 5.12],
+            [6.56, 5.84],
             [4.58, 3.41]
         ]
+
+        self.plant_camera_pose = [
+        # Plant pose: [pan, tilt, phi]
+            [0, 15, 135]
+
+        ]
+
 
     def get_point(self, index):
         point = Point(self.global_target_positions[index][0], self.global_target_positions[index][1],0)
         return point
+
+    def get_target_pose(self, index):
+        pose = PoseFloat32(self.aruco_marker_pose[index][0], self.aruco_marker_pose[index][1], self.aruco_marker_pose[index][2])
+        return pose
 
     def translation_matrix(self, index):
         x = self.aruco_marker_pose[index][0]

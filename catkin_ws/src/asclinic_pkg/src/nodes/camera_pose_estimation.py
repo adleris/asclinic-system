@@ -93,8 +93,8 @@ class ArucoDetector:
         self.image_publisher = rospy.Publisher("/asc"+"/camera_image", Image, queue_size=10)
 
         # Setup Subscriber to get camera pan pose
-        rospy.Subscriber("/asc"+"/pose_camera_pan", Int32, self.adjust_pan_angle)
-        self.phi_servo = 0
+        rospy.Subscriber("/asc"+"/pan_deg", Int32, self.adjust_pan_angle)
+        self.servo_phi = 0
 
         # > Put the desired video capture properties into local variables
         self.camera_frame_width  = DESIRED_CAMERA_FRAME_WIDTH
@@ -224,7 +224,7 @@ class ArucoDetector:
 
 
     def adjust_pan_angle(self, data):
-        pass
+        self.servo_phi = np.radians(data.data)
 
     # Respond to timer callback
     def timerCallbackForCameraRead(self, event):
@@ -311,10 +311,11 @@ class ArucoDetector:
                 # print(np.degrees(phi_c))
                 # print(np.degrees(phi_m))
                 
-                phi = phi_m - phi_c # negative to make the math work out
-                # print(np.degrees(phi))
+                phi = phi_m - phi_c - self.servo_phi# negative to make the math work out
+                
                 if (abs(phi) > np.pi):
                     phi = 2*np.pi - np.sign(phi)*phi
+                print(f"phi: {np.degrees(phi)}\t\tphi_est: {np.degrees(phi_m - phi_c)}\t\tservo_phi: {-self.servo_phi}")
                 # print("x_c: " + str(x_c) + " y_c: " + str(y_c) + " phi: " + str(np.degrees(phi)))
                 data_string = PoseFloat32()
                 data_string.x = x_c

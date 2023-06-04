@@ -23,6 +23,13 @@
 
 		<node
 			pkg    = "asclinic_pkg"
+			name   = "servo_position_control"
+			output = "screen"
+			type   = "servo_position_control.py"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
 			name   = "i2c_for_servos"
 			output = "screen"
 			type   = "i2c_for_servos"
