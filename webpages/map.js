@@ -1,8 +1,46 @@
 // Array of known data points
 const knownDataPoints = [
-  { x: 100, y: 100 },
-  { x: 200, y: 200 },
-  // Add more data points here
+  {x:177,y:131},
+  {x:414,y:89},
+  {x:655,y:126},
+  {x:944,y:93},
+  {x:1151,y:170},
+  {x:1442,y:139},
+  {x:1599,y:184},
+  {x:131,y:315},
+  {x:669,y:374},
+  {x:1125,y:349},
+  {x:1599,y:400},
+  {x:79,y:524},
+  {x:271,y:612},
+  {x:826,y:505},
+  {x:1075,y:510},
+  {x:1643,y:583},
+  {x:433,y:787},
+  {x:708,y:691},
+  {x:1127,y:714},
+  {x:1342,y:773},
+  {x:1573,y:839},
+  {x:315,y:970},
+  {x:669,y:948},
+  {x:787,y:1133},
+  {x:1049,y:1206},
+  {x:1245,y:1040},
+  {x:1455,y:944},
+  {x:79,y:1259},
+  {x:229,y:1311},
+  {x:781,y:1332},
+  {x:1064,y:1396},
+  {x:1632,y:1167},
+  {x:1599,y:1320},
+  {x:180,y:1553},
+  {x:354,y:1626},
+  {x:610,y:1588},
+  {x:873,y:1626},
+  {x:901,y:1497},
+  {x:1091,y:1569},
+  {x:1384,y:1592},
+  {x:1573,y:1547}
 ];
 
 // Variables to store the current pose and path coordinates
@@ -18,8 +56,7 @@ let mapTopicListeners = [];
 
 let image;
 let imageReady = false;
-let originalImageDimensions = null;
-let scaledImageDimensions = null;
+let imageScaleFactors = {width: 1, height: 1};
 
 
 /* Exported functions ------------------------------------------------------ */
@@ -64,7 +101,7 @@ export function createMapTopicCallbackMapping(ros, topicList) {
 /* Internal functions ------------------------------------------------------ */
 
 // Function to plot a single point on the canvas
-function plotPoint(context, x, y, color) {
+export function plotPoint(context, x, y, color) {
   context.beginPath();
   context.arc(x, y, 3, 0, 2 * Math.PI);
   context.fillStyle = color;
@@ -88,14 +125,12 @@ function loadImage() {
   image.onload = () => {
     console.log('MAP: image loaded')
     imageReady = true;
-    originalImageDimensions = {width: image.width, height: image.height};
-    console.log(originalImageDimensions);
-    scaledImageDimensions = calculateAspectRatioFit(originalImageDimensions.width, originalImageDimensions.height, 600, 600);
-    console.log(scaledImageDimensions);
 
     const canvas = document.getElementById('map-canvas');
+    let scaledImageDimensions = calculateAspectRatioFit(image.width, image.height, 600, 600);
     canvas.height = scaledImageDimensions.height;
     canvas.width = scaledImageDimensions.width;
+
     return drawMap();
   }
 }
@@ -103,10 +138,13 @@ function loadImage() {
 function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
 
   let ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+  let scaled = { width: srcWidth*ratio, height: srcHeight*ratio }
+  console.log('scaling', [srcWidth, srcHeight], 'to', scaled);
 
-  return { width: srcWidth*ratio, height: srcHeight*ratio };
+  imageScaleFactors.width  = scaled.width  / srcWidth;
+  imageScaleFactors.height = scaled.height / srcHeight;
+  return scaled;
 }
-
 
 // Function to draw the map (known data points and lines)
 function drawMap() {
@@ -115,6 +153,9 @@ function drawMap() {
     console.log("MAP: not ready")
     return loadImage();
   }
+
+  const xScale = imageScaleFactors.width;
+  const yScale = imageScaleFactors.height;
 
   const canvas = document.getElementById('map-canvas');
   const context = canvas.getContext('2d');
@@ -125,12 +166,12 @@ function drawMap() {
 
   // Plot known data points
   knownDataPoints.forEach(point => {
-    plotPoint(context, point.x, point.y, 'blue');
+    plotPoint(context, point.x * xScale, point.y * yScale, 'blue');
   });
 
   // Plot current pose
   if (currentPose) {
-    plotPoint(context, currentPose.x, currentPose.y, 'red');
+    plotPoint(context, currentPose.x * xScale, currentPose.y * yScale, 'red');
   }
 
   // Draw lines between path coordinates
@@ -141,10 +182,10 @@ function drawMap() {
       const endPoint = pathCoordinates[i + 1];
       drawLine(
         context,
-        startPoint.x,
-        startPoint.y,
-        endPoint.x,
-        endPoint.y,
+        startPoint.x * xScale,
+        startPoint.y * yScale,
+        endPoint.x * xScale,
+        endPoint.y * yScale,
         'green'
       );
     }

@@ -1,4 +1,4 @@
-import { createMapTopicCallbackMapping } from './map.js';
+import { createMapTopicCallbackMapping, plotPoint } from './map.js';
 
 // Connect to Ros Bridge
 var ros = new ROSLIB.Ros({
