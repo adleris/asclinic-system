@@ -5,6 +5,15 @@
     
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+<!--    <style>
+	#camera_image,
+	#map {
+	    flex: 1;
+	    max-width: 50%; /* Adjust the value as needed */
+	    box-sizing: border-box;
+	}
+    </style> -->
 </head>
 
 <body>
@@ -17,7 +26,7 @@
         </div>
       </th>
     </tr>
-    <tr id="client">
+    <tr id="client" bottom-padding="10px">
       <td>
         <div id="client-div">
           <div id="client-button-div"></div>
@@ -25,19 +34,22 @@
             <button id="taken-photo">Take photo</button>
           </div>
           <br />
-          <div id="client-images">
-            <div id="camera_image" display="none">
-              <!-- <img src="http://10.41.146.230:8080/stream?topic=/asc/camera_image" style="width: 640" /> -->
+          <div id="client-images" style="width: 100%; display: inline-flex;">
+            <div id="camera_image" display="none" style="flex:1; max-width: 50%; box-sizing: border-box;">
+              <img src="http://10.41.146.230:8080/stream?topic=/asc/camera_image" style="width: 640" />
             </div>
-            <div id="map">
+            <div id="map" style="flex:1; max-width: 50%; box-sizing: border-box;">
               <canvas id="map-canvas" width="600" height="600"></canvas>
             </div>
+            <div><br /><div>
           </div>
         </div>
       </td>
     </tr>
-    <tr id="debug">
+    <tr id="debug" bottom-padding="10px">
       <td>
+      <div id="debug-div">
+      <div id="debug-console-pane">
         <button id="refresh-topic-btn">Refresh Topics</button>
         <select id="topic-dropdown">
           <option value="" selected disabled hidden>Select a topic</option>
@@ -50,12 +62,13 @@
         <div id="console-wrapper">
           <div id="console"></div>
         </div>
-      </td>
-      <td>
+      </div>
         <div id="checkbox-list"></div>
+      </div>
       </td>
     </tr>
   </table>
+  <br />
 
   <!-- Needs to run after elements are loaded -->
   <script type="module" src="./index.js"></script>

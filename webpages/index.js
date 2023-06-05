@@ -319,13 +319,13 @@ button.addEventListener("click", function() {
     currentState = "Debug"
     button.textContent = "Debug";
     debug.style.display = ""
-    client.style.display = "None"
+//    client.style.display = "None"
     
     } else {
     currentState = "Client"
     button.textContent = "Client";
     debug.style.display = "None"
-    client.style.display = ""
+//    client.style.display = ""
     }
 });
 
