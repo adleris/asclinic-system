@@ -8,7 +8,7 @@ This file contains the exports for:
 
 from dijkstra import Edge, Vertex
 
-def load_coords(as_objects: bool = True) -> list[Vertex]:
+def load_coords(as_objects: bool = True, for_JS=False) -> list[Vertex]:
     """Load in coordinates of path planning vertices
 
     The vertices are returned in x, y coordinates, following the coordinate scheme as outlined elsewhere
@@ -68,6 +68,12 @@ def load_coords(as_objects: bool = True) -> list[Vertex]:
         [1056, 1214],
         [1200, 1180]
     ]
+
+    if for_JS:
+        return ',\n'.join(
+                ["{x:"+str(round(v[0] / NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS))+
+                ",y:"+str(round(v[1] / NODE_PLANNING_TO_ROOM_MAP_CM_TO_PIXELS))+"}" for v in nodes]
+            )
 
     # convert pixel values into xy coordinates (expressed in metres)
     vertex_coords: list[tuple[int, int]] = [(0,0) for n in range(len(nodes))]

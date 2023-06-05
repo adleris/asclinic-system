@@ -3,6 +3,8 @@
      <arg name="port" value="9090"/>
   </include>
 
+   <node name="web_video_server" pkg="web_video_server" type="web_video_server" />
+
   	<!-- START A GROUP WITH A NAMESPACE -->
 	<group ns="asc">
 
@@ -19,6 +21,13 @@
 			name   = "camera_servo_control"
 			output = "screen"
 			type   = "camera_servo_control.py"
+		/>
+
+		<node
+			pkg    = "asclinic_pkg"
+			name   = "servo_position_control"
+			output = "screen"
+			type   = "servo_position_control.py"
 		/>
 
 		<node

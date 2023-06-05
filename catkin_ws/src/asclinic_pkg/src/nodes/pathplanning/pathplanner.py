@@ -22,7 +22,7 @@ NODE_NAME = "planner"
 
 HARDCODED_START_POINT = Point(4.55, 2.25, 0)
 HARDCODED_START_POSE  = Pose(HARDCODED_START_POINT, Quaternion(0,0,0,1))
-AT_VERTEX_DISTANCE = 0.1 # metres
+AT_VERTEX_DISTANCE = 0.15 # metres
 
 class PathPlanner():
 

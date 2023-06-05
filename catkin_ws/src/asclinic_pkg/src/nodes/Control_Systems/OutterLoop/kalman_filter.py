@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from asclinic_pkg.msg import PoseFloat32
+from std_msgs.msg import Int32, Bool
 from math import pi
 import rospy
 
@@ -19,6 +20,9 @@ class kalman_filter:
         rospy.Subscriber(f"{NAMESPACE}/change_to_pose", PoseFloat32, self.update_pose, queue_size=1)
         rospy.Subscriber(f"initial_pose", PoseFloat32, self.set_initial_pose, queue_size=1)
         rospy.Subscriber(f"pose_camera_estimation", PoseFloat32, self.set_pose, queue_size=1)
+        rospy.Subscriber("/asc/control/in_rotation", Bool, self.set_inRotation, queue_size=1)
+
+        
 
     def set_initial_pose(self, event):
         # sets the a new pose once, used for the intial pose
@@ -32,6 +36,9 @@ class kalman_filter:
 
     def set_pose(self, event):
         # This takes the change to pose and adds them to the current pose to be published
+        if not self.initial_pose_set:
+            self.initial_pose_set = True
+        print(self.inRotation)
         if self.inRotation:
             return
         

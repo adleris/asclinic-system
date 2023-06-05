@@ -1,6 +1,9 @@
+import { createMapTopicCallbackMapping, plotPoint } from './map.js';
+
 // Connect to Ros Bridge
 var ros = new ROSLIB.Ros({
-    url : 'ws://10.41.146.230:9090'
+    url : 'ws://10.41.146.230:9090' // on robot
+    // url : 'ws://localhost:9090'  // in Docker
 });
 
 ros.on('connection', function() {
@@ -43,7 +46,11 @@ async function getTopics() {
     // Add topics to the dropdown menu
     addTopicToDropdown(topicList, "topic-dropdown")
 
+    console.log("add topics to console")
     addAscToConsole(topicList)
+
+    console.log("creating mappings")
+    createMapTopicCallbackMapping(ros, topicList);
 
     // Add topics to checkbox list
     createInputs(topicList)
@@ -151,7 +158,7 @@ function addAscToConsole(topicList){
     let n = 0;
     listenerArray = []
 
-    for (i=0; i < topicList["topics"].length; i++) {
+    for (let i=0; i < topicList["topics"].length; i++) {
 
         // if (!topicList["topics"][i].startsWith('/asc')) {
         //     continue;
@@ -201,6 +208,11 @@ function clearListeners() {
 const sysStartBtn = document.getElementById("system-start");
 sysStartBtn.addEventListener("click", function(){
     publishRosBool("/asc/system_start", true);
+})
+
+const sysAbortBtn = document.getElementById("system-abort");
+sysAbortBtn.addEventListener("click", function(){
+    publishRosBool("/asc/emergency", true);
 })
 
 const photoTakenBtn = document.getElementById("taken-photo");
@@ -256,6 +268,8 @@ async function publishRosBool(rostopic, boolData){
 // //publishBtn.addEventListener("click", publishMessage);
 // dropdown2.addEventListener("change", changePublishText); 
 
+let consoleStartButton = document.getElementById("toggle-button");
+consoleStartButton.addEventListener("click", toggleButton);
 var toggleValue = false;
 
 function toggleButton() {
@@ -277,7 +291,7 @@ function createInputs(topicList) {
     const checkboxList = document.getElementById("checkbox-list");
     checkboxList.innerHTML = ""
 
-    for (i=0; i < topicList["topics"].length; i++){
+    for (let i=0; i < topicList["topics"].length; i++){
         let checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.id = topicList["topics"][i];
@@ -310,13 +324,13 @@ button.addEventListener("click", function() {
     currentState = "Debug"
     button.textContent = "Debug";
     debug.style.display = ""
-    client.style.display = "None"
+//    client.style.display = "None"
     
     } else {
     currentState = "Client"
     button.textContent = "Client";
     debug.style.display = "None"
-    client.style.display = ""
+//    client.style.display = ""
     }
 });
 
