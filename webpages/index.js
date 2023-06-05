@@ -2,8 +2,8 @@ import { createMapTopicCallbackMapping, plotPoint } from './map.js';
 
 // Connect to Ros Bridge
 var ros = new ROSLIB.Ros({
-    // url : 'ws://10.41.146.230:9090'
-    url : 'ws://localhost:9090'
+    url : 'ws://10.41.146.230:9090' // on robot
+    // url : 'ws://localhost:9090'  // in Docker
 });
 
 ros.on('connection', function() {
