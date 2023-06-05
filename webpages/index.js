@@ -210,6 +210,11 @@ sysStartBtn.addEventListener("click", function(){
     publishRosBool("/asc/system_start", true);
 })
 
+const sysAbortBtn = document.getElementById("system-abort");
+sysAbortBtn.addEventListener("click", function(){
+    publishRosBool("/asc/emergency", false);
+})
+
 const photoTakenBtn = document.getElementById("taken-photo");
 photoTakenBtn.addEventListener("click", function(){
     publishRosBool("/asc/photo_taken", true);

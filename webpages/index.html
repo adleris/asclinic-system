@@ -31,6 +31,7 @@
         <div id="client-div">
           <div id="client-button-div"></div>
           <button id="system-start">Start Robot</button>
+          <button id="system-abort">Abort!</button>
           <button id="taken-photo">Take photo</button>
         </div>
         <br />
@@ -49,8 +50,8 @@
     </tr>
     <tr id="debug" bottom-padding="10px">
       <td>
-        <div id="debug-div" style="display: inline-flex">
-          <div id="debug-console-pane" style="width: 50%; flex: 1;">
+        <div id="debug-div" style="display: flex">
+          <div id="debug-console-pane" style="flex: 1;">
             <button id="refresh-topic-btn">Refresh Topics</button>
             <select id="topic-dropdown">
               <option value="" selected disabled hidden>Select a topic</option>
@@ -64,7 +65,7 @@
               <div id="console"></div>
             </div>
           </div>
-          <div id="checkbox-list" style="width: 50%; flex: 1;"></div>
+          <div id="checkbox-list" style="flex: 1;"></div>
         </div>
       </td>
     </tr>
