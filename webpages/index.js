@@ -212,7 +212,7 @@ sysStartBtn.addEventListener("click", function(){
 
 const sysAbortBtn = document.getElementById("system-abort");
 sysAbortBtn.addEventListener("click", function(){
-    publishRosBool("/asc/emergency", false);
+    publishRosBool("/asc/emergency", true);
 })
 
 const photoTakenBtn = document.getElementById("taken-photo");
