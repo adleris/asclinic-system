@@ -263,6 +263,8 @@ async function publishRosBool(rostopic, boolData){
 // //publishBtn.addEventListener("click", publishMessage);
 // dropdown2.addEventListener("change", changePublishText); 
 
+let consoleStartButton = document.getElementById("toggle-button");
+consoleStartButton.addEventListener("click", toggleButton);
 var toggleValue = false;
 
 function toggleButton() {

@@ -46,6 +46,8 @@ const knownDataPoints = [
 // Variables to store the current pose and path coordinates
 let currentPose = null;
 let pathCoordinates = [];
+let poseDisplayCounter = 0; // don't want to render every single time, too slow
+
 
 let topicMap = {
   "/asc/control/curr_pose" : currentPoseCallback,
@@ -65,7 +67,10 @@ let imageScaleFactors = {width: 1, height: 1};
 export function currentPoseCallback(update) {
   currentPose = convertPointToPixels({x: update.x, y: update.y});
   // currentPose = { x: update.x, y: update.y };
-  drawMap();
+  poseDisplayCounter++;
+  if (poseDisplayCounter % 5 == 0) {
+    drawMap();
+  }
 }
 
 // Callback function for path
