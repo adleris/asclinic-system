@@ -62,8 +62,9 @@ let imageScaleFactors = {width: 1, height: 1};
 /* Exported functions ------------------------------------------------------ */
 
 // Callback function for current pose
-export function currentPoseCallback(x, y) {
-  currentPose = { x, y };
+export function currentPoseCallback(update) {
+  currentPose = convertPointToPixels({x: update.x, y: update.y});
+  // currentPose = { x: update.x, y: update.y };
   drawMap();
 }
 
@@ -146,8 +147,14 @@ function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
   return scaled;
 }
 
+export function convertPointToPixels(point) {
+  return { x: point.x *100/0.594 * imageScaleFactors.width,
+          /* convert room y to image y coordinate system */
+           y: (image.height - point.y *100/0.594) * imageScaleFactors.height}
+}
+
 // Function to draw the map (known data points and lines)
-function drawMap() {
+export function drawMap() {
   console.log("MAP: draw function")
   if (!imageReady) {
     console.log("MAP: not ready")
@@ -171,7 +178,7 @@ function drawMap() {
 
   // Plot current pose
   if (currentPose) {
-    plotPoint(context, currentPose.x * xScale, currentPose.y * yScale, 'red');
+    plotPoint(context, currentPose.x, currentPose.y, 'red');
   }
 
   // Draw lines between path coordinates
